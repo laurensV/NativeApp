@@ -22,3 +22,6 @@ _This app will be a real-time multiplayer game application for Android based on 
 - Android SDK (java)
 - AndEngine (2d opengl game rendering engine)
 - AndEgnine Multiplayer Extension
+
+###Mockups###
+![Battlefield](doc/battlefield.png "Battlefield")
