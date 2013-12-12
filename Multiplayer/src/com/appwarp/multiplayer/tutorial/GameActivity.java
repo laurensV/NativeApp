@@ -74,7 +74,14 @@ public class GameActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 	
 	private String roomId = "";
 	
-	private int selectedFruit=-1;
+	
+	private Sprite banana, grape, pineapple, strawary, selectedFruit;
+	private Sprite banana2, grape2, pineapple2, strawary2;
+	
+	private int selectedFruitId = -1;
+	
+	private boolean secondPlayer = false;
+	private boolean initialize = false;
 	
 	@Override
 	public EngineOptions onCreateEngineOptions() {
@@ -132,6 +139,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 		this.fruitBitmapTextureAtlas4.load();
 		
 		this.coinBitmapTextureAtlas.load();
+
 		
 		Intent intent = getIntent();
 		roomId = intent.getStringExtra("roomId");
@@ -140,73 +148,179 @@ public class GameActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 
 	@Override
 	protected Scene onCreateScene() {
-//		this.mEngine.registerUpdateHandler(new FPSLogger()); // logs the frame rate
+		//this.mEngine.registerUpdateHandler(new FPSLogger()); // logs the frame rate
 
-		/* Create Scene and set background colour to (1, 1, 1) = white */
+		/* Create Scene */
 		this.mMainScene = new Scene();
 		this.mMainScene.setBackground(mGrassBackground);
 
-		//Adding fruit here
 		
-		final Sprite banana = new Sprite(0, CAMERA_HEIGHT/2-50*2, mFruitTiledTextureRegion1, this.getVertexBufferObjectManager()){
-			@Override
-			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
-					float pTouchAreaLocalX, float pTouchAreaLocalY) {
-				selectedFruit = Constants.BananaId;
-				return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
-			}
-		};
-		banana.setSize(50, 50);
-		this.mMainScene.registerTouchArea(banana);
-		this.mMainScene.attachChild(banana);
-		final Sprite grape = new Sprite(0, CAMERA_HEIGHT/2-50, mFruitTiledTextureRegion2, this.getVertexBufferObjectManager()){
-			@Override
-			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
-					float pTouchAreaLocalX, float pTouchAreaLocalY) {
-				selectedFruit = Constants.GrapeId;
-				return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
-			}
-		};
-		grape.setSize(50, 50);
-		this.mMainScene.registerTouchArea(grape);
-		this.mMainScene.attachChild(grape);
-		final Sprite pineapple = new Sprite(0, CAMERA_HEIGHT/2, mFruitTiledTextureRegion3, this.getVertexBufferObjectManager()){
-			@Override
-			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
-					float pTouchAreaLocalX, float pTouchAreaLocalY) {
-				selectedFruit = Constants.PinaappleId;
-				return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
-			}
-		};
-		pineapple.setSize(50, 50);
-		this.mMainScene.registerTouchArea(pineapple);
-		this.mMainScene.attachChild(pineapple);
-		final Sprite strawary = new Sprite(0, CAMERA_HEIGHT/2+50, mFruitTiledTextureRegion4, this.getVertexBufferObjectManager()){
-			@Override
-			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
-					float pTouchAreaLocalX, float pTouchAreaLocalY) {
-				selectedFruit = Constants.StrawaryId;
-				return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
-			}
-		};
-		strawary.setSize(50, 50);
-		this.mMainScene.registerTouchArea(strawary);
-		this.mMainScene.attachChild(strawary);
+		
 		
 		// Adding coin here
 		
-		final Sprite coin1 = new Sprite(0, 0, mCoinTiledTextureRegion, this.getVertexBufferObjectManager());
+		/*final Sprite coin1 = new Sprite(0, 0, mCoinTiledTextureRegion, this.getVertexBufferObjectManager());
 		this.mMainScene.attachChild(coin1);
 		final Sprite coin2 = new Sprite(CAMERA_WIDTH-mCoinTiledTextureRegion.getWidth(), 0, mCoinTiledTextureRegion, this.getVertexBufferObjectManager());
 		this.mMainScene.attachChild(coin2);
 		final Sprite coin3 = new Sprite(0, CAMERA_HEIGHT-mCoinTiledTextureRegion.getHeight(), mCoinTiledTextureRegion, this.getVertexBufferObjectManager());
 		this.mMainScene.attachChild(coin3);
 		final Sprite coin4 = new Sprite(CAMERA_WIDTH-mCoinTiledTextureRegion.getWidth(), CAMERA_HEIGHT-mCoinTiledTextureRegion.getHeight(), mCoinTiledTextureRegion, this.getVertexBufferObjectManager());
-		this.mMainScene.attachChild(coin4);
+		this.mMainScene.attachChild(coin4);*/
 		
 		
 		this.mMainScene.setOnSceneTouchListener(this);
 		return this.mMainScene;
+	}
+	
+	private void initObjects(){
+		if (!initialize){
+		
+		//Adding fruit here
+		
+				banana = new Sprite(CAMERA_WIDTH/2-50*2, CAMERA_HEIGHT-100, mFruitTiledTextureRegion1, this.getVertexBufferObjectManager()){
+					@Override
+					public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
+							float pTouchAreaLocalX, float pTouchAreaLocalY) {
+						selectedFruitId = Constants.BananaId;
+						if (selectedFruit != null){
+							selectedFruit.setSize(50,50);
+						}
+						this.setSize(65, 65);
+						selectedFruit = this;
+						return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+					}
+				};
+				banana.setSize(50, 50);
+				if (!secondPlayer)
+					this.mMainScene.registerTouchArea(banana);
+				this.mMainScene.attachChild(banana);
+				grape = new Sprite(CAMERA_WIDTH/2-50, CAMERA_HEIGHT-100, mFruitTiledTextureRegion2, this.getVertexBufferObjectManager()){
+					@Override
+					public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
+							float pTouchAreaLocalX, float pTouchAreaLocalY) {
+						selectedFruitId = Constants.GrapeId;
+						if (selectedFruit != null){
+							selectedFruit.setSize(50,50);
+						}
+						this.setSize(65, 65);
+						selectedFruit = this;
+						return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+					}
+				};
+				grape.setSize(50, 50);
+				if (!secondPlayer)
+					this.mMainScene.registerTouchArea(grape);
+				this.mMainScene.attachChild(grape);
+
+				pineapple = new Sprite(CAMERA_WIDTH/2, CAMERA_HEIGHT-100, mFruitTiledTextureRegion3, this.getVertexBufferObjectManager()){
+					@Override
+					public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
+							float pTouchAreaLocalX, float pTouchAreaLocalY) {
+						selectedFruitId = Constants.PinaappleId;
+						if (selectedFruit != null){
+							selectedFruit.setSize(50,50);
+						}
+						this.setSize(65, 65);
+						selectedFruit = this;
+						return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+					}
+				};
+				pineapple.setSize(50, 50);
+				if (!secondPlayer)
+					this.mMainScene.registerTouchArea(pineapple);
+				this.mMainScene.attachChild(pineapple);
+				strawary = new Sprite(CAMERA_WIDTH/2+50, CAMERA_HEIGHT-100, mFruitTiledTextureRegion4, this.getVertexBufferObjectManager()){
+					@Override
+					public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
+							float pTouchAreaLocalX, float pTouchAreaLocalY) {
+						selectedFruitId = Constants.StrawaryId;
+						if (selectedFruit != null){
+							selectedFruit.setSize(50,50);
+						}
+						this.setSize(65, 65);
+						selectedFruit = this;
+						return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+					}
+				};
+				strawary.setSize(50, 50);
+				if (!secondPlayer)
+					this.mMainScene.registerTouchArea(strawary);
+				this.mMainScene.attachChild(strawary);
+		//Adding fruit here for player 2
+		
+		banana2 = new Sprite(CAMERA_WIDTH/2-50*2, 0+100, mFruitTiledTextureRegion1, this.getVertexBufferObjectManager()){
+			@Override
+			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
+					float pTouchAreaLocalX, float pTouchAreaLocalY) {
+				selectedFruitId = Constants.BananaId;
+				if (selectedFruit != null){
+					selectedFruit.setSize(50,50);
+				}
+				this.setSize(65, 65);
+				selectedFruit = this;
+				return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+			}
+		};
+		banana2.setSize(50, 50);
+		if (secondPlayer)
+			this.mMainScene.registerTouchArea(banana2);
+		this.mMainScene.attachChild(banana2);
+		grape2 = new Sprite(CAMERA_WIDTH/2-50, 0+100, mFruitTiledTextureRegion2, this.getVertexBufferObjectManager()){
+			@Override
+			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
+					float pTouchAreaLocalX, float pTouchAreaLocalY) {
+				selectedFruitId = Constants.GrapeId;
+				if (selectedFruit != null){
+					selectedFruit.setSize(50,50);
+				}
+				this.setSize(65, 65);
+				selectedFruit = this;
+				return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+			}
+		};
+		grape2.setSize(50, 50);
+		if (secondPlayer)
+			this.mMainScene.registerTouchArea(grape2);
+		this.mMainScene.attachChild(grape2);
+
+		pineapple2 = new Sprite(CAMERA_WIDTH/2, 0+100, mFruitTiledTextureRegion3, this.getVertexBufferObjectManager()){
+			@Override
+			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
+					float pTouchAreaLocalX, float pTouchAreaLocalY) {
+				selectedFruitId = Constants.PinaappleId;
+				if (selectedFruit != null){
+					selectedFruit.setSize(50,50);
+				}
+				this.setSize(65, 65);
+				selectedFruit = this;
+				return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+			}
+		};
+		pineapple2.setSize(50, 50);
+		if (secondPlayer)
+			this.mMainScene.registerTouchArea(pineapple2);
+		this.mMainScene.attachChild(pineapple2);
+		strawary2 = new Sprite(CAMERA_WIDTH/2+50, 0+100, mFruitTiledTextureRegion4, this.getVertexBufferObjectManager()){
+			@Override
+			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
+					float pTouchAreaLocalX, float pTouchAreaLocalY) {
+				selectedFruitId = Constants.StrawaryId;
+				if (selectedFruit != null){
+					selectedFruit.setSize(50,50);
+				}
+				this.setSize(65, 65);
+				selectedFruit = this;
+				return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+			}
+		};
+		strawary2.setSize(50, 50);
+		if (secondPlayer)
+			this.mMainScene.registerTouchArea(strawary2);
+		this.mMainScene.attachChild(strawary2);
+		
+		initialize = true;
+	}
 	}
 
 	
@@ -220,10 +334,13 @@ public class GameActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 			theClient.getLiveRoomInfo(roomId);
 		}
 	}
-	public void addMorePlayer(boolean isMine, String userName){
-		if(userMap.get(userName)!=null){// if already in room
+	public void addMorePlayer(boolean isMine, String userName, boolean secondPlayer){
+		// if already in room
+		if(userMap.get(userName)!=null){
 			return;
 		}
+		
+		
 		Log.d("userNameGame", userName);
 		char index =  userName.charAt(userName.length()-1);
 		TiledTextureRegion tiledTextureRegion = null;
@@ -242,8 +359,14 @@ public class GameActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 		User user = new User(face.getX(), face.getY(), face);
 		userMap.put(userName, user);
 		if(isMine){
+			if (secondPlayer){ 
+				this.secondPlayer = true;
+			}
+			initObjects();
+			Log.d("INIT", "INIT");
 			this.mMainScene.setOnSceneTouchListener(this);
 		}
+		
 	}
 	private void sendUpdateEvent(float xCord, float yCord){
 		try{
@@ -262,6 +385,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 		HashMap<String, Object> table = new HashMap<String, Object>();
 		table.put(position, objectType);
 		theClient.updateRoomProperties(roomId, table, null);
+		//theClient.getLiveRoomInfo(roomId);
 	}
 	
 	public void handleLeave(String name) {
@@ -290,71 +414,158 @@ public class GameActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 		return false;
 	}
 	private void checkForFruitMove(float x, float y){
-		if(selectedFruit!=-1){
-			if(x>0 && x<mFruitTiledTextureRegion1.getWidth() && y>0 && y<mFruitTiledTextureRegion1.getWidth()){
-				placeObject(selectedFruit, "topLeft", null, true);
+		if(selectedFruitId!=-1){
+			if(x>0 && x<CAMERA_WIDTH *(1f/4f) && y>CAMERA_HEIGHT/2f && y<CAMERA_HEIGHT-200){
+				placeObject(selectedFruitId, "card1", null, true);
+			} else if(x>CAMERA_WIDTH *(1f/4f) && x<CAMERA_WIDTH *(2f/4f) && y>CAMERA_HEIGHT/2f && y<CAMERA_HEIGHT-200){
+				placeObject(selectedFruitId, "card2", null, true);
+			} else if(x>CAMERA_WIDTH *(2f/4f) && x<CAMERA_WIDTH *(3f/4f) && y>CAMERA_HEIGHT/2f && y<CAMERA_HEIGHT-200){
+				placeObject(selectedFruitId, "card3", null, true);
+			} else if(x>CAMERA_WIDTH *(3f/4f) && x<CAMERA_WIDTH && y>CAMERA_HEIGHT/2f && y<CAMERA_HEIGHT-200){
+				placeObject(selectedFruitId, "card4", null, true);
+			}
+
+			/*if(x>0 && x<mFruitTiledTextureRegion1.getWidth() && y>0 && y<mFruitTiledTextureRegion1.getWidth()){
+				placeObject(selectedFruitId, "topLeft", null, true);
 				return;
 			}else if(x>CAMERA_WIDTH-mFruitTiledTextureRegion2.getWidth() && x<CAMERA_WIDTH && y>0 && y<mFruitTiledTextureRegion2.getWidth()){
-				placeObject(selectedFruit, "topRight", null, true);
+				placeObject(selectedFruitId, "topRight", null, true);
 				return;
 			}else if(x>0 && x<mFruitTiledTextureRegion3.getWidth() && y>CAMERA_HEIGHT-mFruitTiledTextureRegion3.getHeight() && y<CAMERA_HEIGHT){
-				placeObject(selectedFruit, "bottomLeft", null, true);
+				placeObject(selectedFruitId, "bottomLeft", null, true);
 				return;
 			}else if(x>CAMERA_WIDTH-mFruitTiledTextureRegion4.getWidth() && x<CAMERA_WIDTH && y>CAMERA_HEIGHT-mFruitTiledTextureRegion4.getHeight() && y<CAMERA_HEIGHT){
-				placeObject(selectedFruit, "bottomRight", null, true);
+				placeObject(selectedFruitId, "bottomRight", null, true);
 				return;
-			}
+			}*/
 		}
 	}
 	
 	public synchronized void placeObject(final int selectedObject, final String destination, final String userName, boolean updateProperty){
-		Sprite sprite=null;
 		float xDest = 0;
 		float yDest = 0;
-		if(destination.equals("topLeft")){
-			xDest = 0;
-			yDest = 0;
-		}else if(destination.equals("topRight")){
-			xDest = CAMERA_WIDTH-mCoinTiledTextureRegion.getWidth();
-			yDest = 0;
-		}else if(destination.equals("bottomLeft")){
-			xDest = 0;
-			yDest = CAMERA_HEIGHT-mCoinTiledTextureRegion.getHeight();
-		}else if(destination.equals("bottomRight")){
-			xDest = CAMERA_WIDTH-mCoinTiledTextureRegion.getWidth();
-			yDest = CAMERA_HEIGHT-mCoinTiledTextureRegion.getHeight();
+		if(destination.equals("card1")){
+			xDest = CAMERA_WIDTH * (1f/9f);
+			yDest = CAMERA_HEIGHT *(2f/3f);
+		}else if(destination.equals("card2")){
+			xDest = CAMERA_WIDTH * (3f/9f);
+			yDest = CAMERA_HEIGHT *(2f/3f);
+		}else if(destination.equals("card3")){
+			xDest = CAMERA_WIDTH * (5f/9f);
+			yDest = CAMERA_HEIGHT *(2f/3f);
+		}else if(destination.equals("card4")){
+			xDest = CAMERA_WIDTH * (7f/9f);
+			yDest = CAMERA_HEIGHT *(2f/3f);
 		}else{
 			return;
 		}
+		
+		if(objectMap.get(destination)!=null){
+			//Sprite objectSprite = objectMap.get(destination);
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+						Utils.showToastAlert(GameActivity.this, "already a card at position " + destination);
+				}
+			});
+			return;
+		}
+		
+		// create new sprite with new ontouch options
+		Sprite sprite=null;
 		if(selectedObject==1){
-			sprite = new Sprite(0, CAMERA_HEIGHT/2-50*2, mFruitTiledTextureRegion1, this.getVertexBufferObjectManager());
+			if(secondPlayer){
+				if (!updateProperty){
+					sprite = new Sprite(CAMERA_WIDTH/2+50, CAMERA_HEIGHT-100, mFruitTiledTextureRegion1, this.getVertexBufferObjectManager());
+					selectedFruit = banana;
+				} else {
+					sprite = new Sprite(CAMERA_WIDTH/2+50, 0+100, mFruitTiledTextureRegion1, this.getVertexBufferObjectManager());
+					selectedFruit = banana2;
+				}
+			} else {
+				if (!updateProperty){
+					sprite = new Sprite(CAMERA_WIDTH/2+50, 0+100, mFruitTiledTextureRegion1, this.getVertexBufferObjectManager());
+					selectedFruit = banana2;
+				} else {
+					sprite = new Sprite(CAMERA_WIDTH/2+50, CAMERA_HEIGHT-100, mFruitTiledTextureRegion1, this.getVertexBufferObjectManager());
+					selectedFruit = banana;
+				}
+			}
 		}else if(selectedObject==2){
-			sprite = new Sprite(0, CAMERA_HEIGHT/2-50, mFruitTiledTextureRegion2, this.getVertexBufferObjectManager());
+			if(secondPlayer){
+				if (!updateProperty){
+					sprite = new Sprite(CAMERA_WIDTH/2+50, CAMERA_HEIGHT-100, mFruitTiledTextureRegion2, this.getVertexBufferObjectManager());
+					selectedFruit = grape;
+				} else {
+					sprite = new Sprite(CAMERA_WIDTH/2+50, 0+100, mFruitTiledTextureRegion2, this.getVertexBufferObjectManager());
+					selectedFruit = grape2;
+				}
+			} else {
+				if (!updateProperty){
+					sprite = new Sprite(CAMERA_WIDTH/2+50, 0+100, mFruitTiledTextureRegion2, this.getVertexBufferObjectManager());
+					selectedFruit = grape2;
+				} else {
+					sprite = new Sprite(CAMERA_WIDTH/2+50, CAMERA_HEIGHT-100, mFruitTiledTextureRegion2, this.getVertexBufferObjectManager());
+					selectedFruit = grape;
+				}
+			}
 		}else if(selectedObject==3){
-			sprite = new Sprite(0, CAMERA_HEIGHT/2, mFruitTiledTextureRegion3, this.getVertexBufferObjectManager());
+			if(secondPlayer){
+				if (!updateProperty){
+					sprite = new Sprite(CAMERA_WIDTH/2+50, CAMERA_HEIGHT-100, mFruitTiledTextureRegion3, this.getVertexBufferObjectManager());
+					selectedFruit = pineapple;
+				} else {
+					sprite = new Sprite(CAMERA_WIDTH/2+50, 0+100, mFruitTiledTextureRegion3, this.getVertexBufferObjectManager());
+					selectedFruit = pineapple2;
+				}
+			} else {
+				if (!updateProperty){
+					sprite = new Sprite(CAMERA_WIDTH/2+50, 0+100, mFruitTiledTextureRegion3, this.getVertexBufferObjectManager());
+					selectedFruit = pineapple2;
+				} else {
+					sprite = new Sprite(CAMERA_WIDTH/2+50, CAMERA_HEIGHT-100, mFruitTiledTextureRegion3, this.getVertexBufferObjectManager());
+					selectedFruit = pineapple;
+				}
+			}
 		}else if(selectedObject==4){
-			sprite = new Sprite(0, CAMERA_HEIGHT/2+50, mFruitTiledTextureRegion4, this.getVertexBufferObjectManager());
+			if(secondPlayer){
+				if (!updateProperty){
+					sprite = new Sprite(CAMERA_WIDTH/2+50, CAMERA_HEIGHT-100, mFruitTiledTextureRegion4, this.getVertexBufferObjectManager());
+					selectedFruit = strawary;
+				} else {
+					sprite = new Sprite(CAMERA_WIDTH/2+50, 0+100, mFruitTiledTextureRegion4, this.getVertexBufferObjectManager());
+					selectedFruit = strawary2;
+				}
+			} else {
+				if (!updateProperty){
+					sprite = new Sprite(CAMERA_WIDTH/2+50, 0+100, mFruitTiledTextureRegion4, this.getVertexBufferObjectManager());
+					selectedFruit = strawary2;
+				} else {
+					sprite = new Sprite(CAMERA_WIDTH/2+50, CAMERA_HEIGHT-100, mFruitTiledTextureRegion4, this.getVertexBufferObjectManager());
+					selectedFruit = strawary;
+				}
+			}
 		}else{
 			return;
 		}
 		sprite.setSize(50, 50);
-		if(objectMap.get(destination)!=null){// remove previous sprite if exist
-			Sprite objectSprite = objectMap.get(destination);
-			final EngineLock engineLock = this.mEngine.getEngineLock();
-			engineLock.lock();
-			this.mMainScene.detachChild(objectSprite);
-			objectSprite.dispose();
-			objectSprite = null;
-			objectMap.remove(objectSprite);
-			engineLock.unlock();
-		}
+		
+		// remove old sprite
+		final EngineLock engineLock = this.mEngine.getEngineLock();
+		engineLock.lock();
+		this.mMainScene.detachChild(selectedFruit);
+		this.mMainScene.unregisterTouchArea(selectedFruit);
+		selectedFruit = null;
+		selectedFruitId = -1;
+		engineLock.unlock();
+
 		objectMap.put(destination, sprite);
 		this.mMainScene.attachChild(sprite);
 		sprite.registerEntityModifier(new MoveModifier(1, sprite.getX(), xDest, sprite.getY(), yDest));
 		if(updateProperty){
 			updateProperty(destination, selectedObject+"");
 		}
-		selectedFruit = -1;
+
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {

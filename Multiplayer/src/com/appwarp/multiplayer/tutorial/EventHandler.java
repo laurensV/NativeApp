@@ -71,7 +71,6 @@ public class EventHandler implements RoomRequestListener, NotifyListener{
 		}
 		
 		// notification is from a remote user. We need to update UI accordingly.
-		
 		for (Map.Entry<String, Object> entry : tableProperties.entrySet()) { 
             if(entry.getValue().toString().length()>0){
 				if(!this.properties.get(entry.getKey()).toString().equals(entry.getValue())){
@@ -91,7 +90,7 @@ public class EventHandler implements RoomRequestListener, NotifyListener{
 
 	@Override
 	public void onUserJoinedRoom(RoomData roomData, String name) {
-		gameScreen.addMorePlayer(true, name);
+		gameScreen.addMorePlayer(true, name, false);
 	}
 
 	@Override
@@ -108,12 +107,14 @@ public class EventHandler implements RoomRequestListener, NotifyListener{
 	@Override
 	public void onGetLiveRoomInfoDone(LiveRoomInfoEvent event) {
 		String[] joinedUser = event.getJoinedUsers();
+		boolean secondPlayer = false;
 		if(joinedUser!=null){
+			if (joinedUser.length > 1) secondPlayer = true;
 			for(int i=0;i<joinedUser.length;i++){
 				if(joinedUser[i].equals(Utils.userName)){
-					gameScreen.addMorePlayer(true, joinedUser[i]);
+					gameScreen.addMorePlayer(true, joinedUser[i], secondPlayer);
 				}else{
-					gameScreen.addMorePlayer(false, joinedUser[i]);
+					gameScreen.addMorePlayer(false, joinedUser[i], secondPlayer);
 				}
 			}
 		}else{

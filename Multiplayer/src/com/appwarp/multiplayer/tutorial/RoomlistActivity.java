@@ -47,7 +47,7 @@ public class RoomlistActivity extends Activity implements ZoneRequestListener, R
 	public void onStart(){
 		super.onStart();
 		theClient.addZoneRequestListener(this);
-		theClient.getRoomInRange(1, 1);// trying to get room with at least one user
+		theClient.getRoomInRange(1, 1);// trying to get room with at min and max 1 user
 	}
 	
 	public void onStop(){
@@ -80,11 +80,11 @@ public class RoomlistActivity extends Activity implements ZoneRequestListener, R
 		progressDialog = ProgressDialog.show(this,"","Please wait...");
 		progressDialog.setCancelable(true);
 		HashMap<String, Object> properties = new HashMap<String, Object>();
-		properties.put("topLeft", "");
-		properties.put("topRight", "");
-		properties.put("bottomLeft", "");
-		properties.put("bottomRight", "");
-		theClient.createRoom(""+System.currentTimeMillis(), "Saurav", 4, properties);
+		properties.put("card1", "");
+		properties.put("card2", "");
+		properties.put("card3", "");
+		properties.put("card4", "");
+		theClient.createRoom("name"+System.currentTimeMillis(), "Saurav", 4, properties);
 	}
 	
 	@Override
