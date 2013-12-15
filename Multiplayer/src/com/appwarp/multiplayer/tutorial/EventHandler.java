@@ -75,8 +75,10 @@ public class EventHandler implements RoomRequestListener, NotifyListener{
             if(entry.getValue().toString().length()>0){
 				if(!this.properties.get(entry.getKey()).toString().equals(entry.getValue())){
 					int fruitId = Integer.parseInt(entry.getValue().toString());
-					gameScreen.placeObject(fruitId, entry.getKey(), userName, false);
 					properties.put(entry.getKey(), entry.getValue());
+					int selectedObjectIdEnemy = Integer.parseInt(tableProperties.get("selectedObjectIdEnemy").toString());
+					gameScreen.placeObject(fruitId, selectedObjectIdEnemy, entry.getKey(), userName, false);
+					properties.put("selectedObjectIdEnemy", "-1");
 				}
 			}
         }
@@ -124,7 +126,9 @@ public class EventHandler implements RoomRequestListener, NotifyListener{
 		for (Map.Entry<String, Object> entry : properties.entrySet()) { 
             if(entry.getValue().toString().length()>0){
 				int fruitId = Integer.parseInt(entry.getValue().toString());
-				gameScreen.placeObject(fruitId, entry.getKey(), null, false);
+				int selectedObjectIdEnemy = Integer.parseInt(this.properties.get("selectedObjectIdEnemy").toString());
+				gameScreen.placeObject(fruitId, selectedObjectIdEnemy, entry.getKey(), null, false);
+				properties.put("selectedObjectIdEnemy", "-1");
 			}
         }
 	}
