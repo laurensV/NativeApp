@@ -1,4 +1,4 @@
-Hangman
+Hearthstone (WILL FINISH BETA TOMORROW)
 =======
 
 **author:** Laurens Verspeek - 10184465<br>
