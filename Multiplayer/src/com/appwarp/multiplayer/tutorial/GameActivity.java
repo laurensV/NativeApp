@@ -1,5 +1,6 @@
 package com.appwarp.multiplayer.tutorial;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Random;
 
@@ -77,6 +78,9 @@ public class GameActivity extends SimpleBaseGameActivity implements
 	private Sprite card1p2Field, card2p2Field, card3p2Field, card4p2Field;
 
 	private int selectedFruitIdEnemy = -1;
+	
+	private int card1Id, card2Id, card3Id, card4Id;
+	private boolean[] usedCards;
 
 	private boolean secondPlayer = false;
 	private boolean initialize = false;
@@ -124,6 +128,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 				this.getTextureManager(), 128, 128);
 		this.fruitBitmapTextureAtlas4 = new BitmapTextureAtlas(
 				this.getTextureManager(), 128, 128);
+		
 
 		this.mPlayerTiledTextureRegion1 = BitmapTextureAtlasTextureRegionFactory
 				.createTiledFromAsset(this.mBitmapTextureAtlas1, this,
@@ -137,19 +142,27 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		this.mPlayerTiledTextureRegion4 = BitmapTextureAtlasTextureRegionFactory
 				.createTiledFromAsset(this.mBitmapTextureAtlas4, this,
 						"monster4.png", 0, 0, 1, 1);
+		usedCards = new boolean[Cards.cards.length + 1];
+		Arrays.fill(usedCards, false);
+		
+		card1Id = pickCardId();
+		card2Id = pickCardId();
+		card3Id = pickCardId();
+		card4Id = pickCardId();
+		
 
 		this.mFruitTiledTextureRegion1 = BitmapTextureAtlasTextureRegionFactory
 				.createTiledFromAsset(this.fruitBitmapTextureAtlas1, this,
-						"card" + Constants.card1Id + ".png", 0, 0, 1, 1);
+						"card" + card1Id + ".png", 0, 0, 1, 1);
 		this.mFruitTiledTextureRegion2 = BitmapTextureAtlasTextureRegionFactory
 				.createTiledFromAsset(this.fruitBitmapTextureAtlas2, this,
-						"card" + Constants.card2Id + ".png", 0, 0, 1, 1);
+						"card" + card2Id + ".png", 0, 0, 1, 1);
 		this.mFruitTiledTextureRegion3 = BitmapTextureAtlasTextureRegionFactory
 				.createTiledFromAsset(this.fruitBitmapTextureAtlas3, this,
-						"card" + Constants.card3Id + ".png", 0, 0, 1, 1);
+						"card" + card3Id + ".png", 0, 0, 1, 1);
 		this.mFruitTiledTextureRegion4 = BitmapTextureAtlasTextureRegionFactory
 				.createTiledFromAsset(this.fruitBitmapTextureAtlas4, this,
-						"card" + Constants.card4Id + ".png", 0, 0, 1, 1);
+						"card" + card4Id + ".png", 0, 0, 1, 1);
 
 		this.mBitmapTextureAtlas1.load();
 		this.mBitmapTextureAtlas2.load();
@@ -165,6 +178,40 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		roomId = intent.getStringExtra("roomId");
 		init(roomId);
 	}
+	
+	private Sprite newSprite(final int id, float x, float y){
+		BitmapTextureAtlas fruitBitmapTextureAtlas1;
+		TiledTextureRegion mFruitTiledTextureRegion1;
+		
+		fruitBitmapTextureAtlas1 = new BitmapTextureAtlas(
+				this.getTextureManager(), 128, 128);
+		
+		mFruitTiledTextureRegion1 = BitmapTextureAtlasTextureRegionFactory
+				.createTiledFromAsset(fruitBitmapTextureAtlas1, this,
+						"card" + id + ".png", 0, 0, 1, 1);
+		
+		fruitBitmapTextureAtlas1.load();
+		
+		return new Sprite(x, y,
+				mFruitTiledTextureRegion1,
+				this.getVertexBufferObjectManager()) {
+			@Override
+			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
+					float pTouchAreaLocalX, float pTouchAreaLocalY) {
+				selectedFruitId = id;
+				selectedFromField = false;
+				if (selectedFruit != null) {
+					selectedFruit.setSize(50, 50);
+				}
+				this.setSize(65, 65);
+				selectedFruit = this;
+				selectedFruitIdEnemy = -1;
+				return super.onAreaTouched(pSceneTouchEvent,
+						pTouchAreaLocalX, pTouchAreaLocalY);
+			}
+		};
+	}
+
 
 	@Override
 	protected Scene onCreateScene() {
@@ -177,183 +224,64 @@ public class GameActivity extends SimpleBaseGameActivity implements
 
 	private void initObjects() {
 		if (!initialize) {
+			int id = 2;
+			if (!secondPlayer)
+				id = card1Id;
 			// Adding fruit here
-			card1 = new Sprite(CAMERA_WIDTH / 2 - 50 * 2, CAMERA_HEIGHT - 100,
-					mFruitTiledTextureRegion1,
-					this.getVertexBufferObjectManager()) {
-				@Override
-				public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
-						float pTouchAreaLocalX, float pTouchAreaLocalY) {
-					selectedFruitId = Constants.card1Id;
-					selectedFromField = false;
-					if (selectedFruit != null) {
-						selectedFruit.setSize(50, 50);
-					}
-					this.setSize(65, 65);
-					selectedFruit = this;
-					selectedFruitIdEnemy = -1;
-					return super.onAreaTouched(pSceneTouchEvent,
-							pTouchAreaLocalX, pTouchAreaLocalY);
-				}
-			};
+			card1 = newSprite(id, CAMERA_WIDTH / 2 - 50 * 2, CAMERA_HEIGHT - 100);
 			card1.setSize(50, 50);
 			if (!secondPlayer)
 				this.mMainScene.registerTouchArea(card1);
 			this.mMainScene.attachChild(card1);
-			card2 = new Sprite(CAMERA_WIDTH / 2 - 50, CAMERA_HEIGHT - 100,
-					mFruitTiledTextureRegion2,
-					this.getVertexBufferObjectManager()) {
-				@Override
-				public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
-						float pTouchAreaLocalX, float pTouchAreaLocalY) {
-					selectedFruitId = Constants.card2Id;
-					selectedFromField = false;
-					if (selectedFruit != null) {
-						selectedFruit.setSize(50, 50);
-					}
-					this.setSize(65, 65);
-					selectedFruit = this;
-					selectedFruitIdEnemy = -1;
-					return super.onAreaTouched(pSceneTouchEvent,
-							pTouchAreaLocalX, pTouchAreaLocalY);
-				}
-			};
+			if (!secondPlayer)
+				id = card2Id;
+			card2 = newSprite(id, CAMERA_WIDTH / 2 - 50, CAMERA_HEIGHT - 100);
 			card2.setSize(50, 50);
 			if (!secondPlayer)
 				this.mMainScene.registerTouchArea(card2);
 			this.mMainScene.attachChild(card2);
-
-			card3 = new Sprite(CAMERA_WIDTH / 2, CAMERA_HEIGHT - 100,
-					mFruitTiledTextureRegion3,
-					this.getVertexBufferObjectManager()) {
-				@Override
-				public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
-						float pTouchAreaLocalX, float pTouchAreaLocalY) {
-					selectedFruitId = Constants.card3Id;
-					selectedFromField = false;
-					if (selectedFruit != null) {
-						selectedFruit.setSize(50, 50);
-					}
-					this.setSize(65, 65);
-					selectedFruit = this;
-					selectedFruitIdEnemy = -1;
-					return super.onAreaTouched(pSceneTouchEvent,
-							pTouchAreaLocalX, pTouchAreaLocalY);
-				}
-			};
+			if (!secondPlayer)
+				id = card3Id;
+			card3 = newSprite(id, CAMERA_WIDTH / 2, CAMERA_HEIGHT - 100);
 			card3.setSize(50, 50);
 			if (!secondPlayer)
 				this.mMainScene.registerTouchArea(card3);
 			this.mMainScene.attachChild(card3);
-			card4 = new Sprite(CAMERA_WIDTH / 2 + 50, CAMERA_HEIGHT - 100,
-					mFruitTiledTextureRegion4,
-					this.getVertexBufferObjectManager()) {
-				@Override
-				public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
-						float pTouchAreaLocalX, float pTouchAreaLocalY) {
-					selectedFruitId = Constants.card4Id;
-					selectedFromField = false;
-					if (selectedFruit != null) {
-						selectedFruit.setSize(50, 50);
-					}
-					this.setSize(65, 65);
-					selectedFruit = this;
-					selectedFruitIdEnemy = -1;
-					return super.onAreaTouched(pSceneTouchEvent,
-							pTouchAreaLocalX, pTouchAreaLocalY);
-				}
-			};
+			if (!secondPlayer)
+				id = card4Id;
+			card4 = newSprite(id, CAMERA_WIDTH / 2 + 50, CAMERA_HEIGHT - 100);
 			card4.setSize(50, 50);
 			if (!secondPlayer)
 				this.mMainScene.registerTouchArea(card4);
 			this.mMainScene.attachChild(card4);
-			// Adding fruit here for player 2
+			
+			id = 2;
 
-			card1p2 = new Sprite(CAMERA_WIDTH / 2 - 50 * 2, 0 + 100,
-					mFruitTiledTextureRegion1,
-					this.getVertexBufferObjectManager()) {
-				@Override
-				public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
-						float pTouchAreaLocalX, float pTouchAreaLocalY) {
-					selectedFruitId = Constants.card1Id;
-					selectedFromField = false;
-					if (selectedFruit != null) {
-						selectedFruit.setSize(50, 50);
-					}
-					this.setSize(65, 65);
-					selectedFruit = this;
-					selectedFruitIdEnemy = -1;
-					return super.onAreaTouched(pSceneTouchEvent,
-							pTouchAreaLocalX, pTouchAreaLocalY);
-				}
-			};
+			// Adding fruit here for player 2
+			if (secondPlayer)
+				id = card1Id;
+			card1p2 = newSprite(id, CAMERA_WIDTH / 2 - 50 * 2, 0 + 100);
 			card1p2.setSize(50, 50);
 			if (secondPlayer)
 				this.mMainScene.registerTouchArea(card1p2);
 			this.mMainScene.attachChild(card1p2);
-			card2p2 = new Sprite(CAMERA_WIDTH / 2 - 50, 0 + 100,
-					mFruitTiledTextureRegion2,
-					this.getVertexBufferObjectManager()) {
-				@Override
-				public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
-						float pTouchAreaLocalX, float pTouchAreaLocalY) {
-					selectedFruitId = Constants.card2Id;
-					selectedFromField = false;
-					if (selectedFruit != null) {
-						selectedFruit.setSize(50, 50);
-					}
-					this.setSize(65, 65);
-					selectedFruit = this;
-					selectedFruitIdEnemy = -1;
-					return super.onAreaTouched(pSceneTouchEvent,
-							pTouchAreaLocalX, pTouchAreaLocalY);
-				}
-			};
+			if (secondPlayer)
+				id = card2Id;
+			card2p2 = newSprite(id, CAMERA_WIDTH / 2 - 50, 0 + 100);
 			card2p2.setSize(50, 50);
 			if (secondPlayer)
 				this.mMainScene.registerTouchArea(card2p2);
 			this.mMainScene.attachChild(card2p2);
-
-			card3p2 = new Sprite(CAMERA_WIDTH / 2, 0 + 100,
-					mFruitTiledTextureRegion3,
-					this.getVertexBufferObjectManager()) {
-				@Override
-				public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
-						float pTouchAreaLocalX, float pTouchAreaLocalY) {
-					selectedFruitId = Constants.card3Id;
-					selectedFromField = false;
-					if (selectedFruit != null) {
-						selectedFruit.setSize(50, 50);
-					}
-					this.setSize(65, 65);
-					selectedFruit = this;
-					selectedFruitIdEnemy = -1;
-					return super.onAreaTouched(pSceneTouchEvent,
-							pTouchAreaLocalX, pTouchAreaLocalY);
-				}
-			};
+			if (secondPlayer)
+				id = card3Id;
+			card3p2 = newSprite(id, CAMERA_WIDTH / 2, 0 + 100);
 			card3p2.setSize(50, 50);
 			if (secondPlayer)
 				this.mMainScene.registerTouchArea(card3p2);
 			this.mMainScene.attachChild(card3p2);
-			card4p2 = new Sprite(CAMERA_WIDTH / 2 + 50, 0 + 100,
-					mFruitTiledTextureRegion4,
-					this.getVertexBufferObjectManager()) {
-				@Override
-				public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
-						float pTouchAreaLocalX, float pTouchAreaLocalY) {
-					selectedFruitId = Constants.card4Id;
-					selectedFromField = false;
-					if (selectedFruit != null) {
-						selectedFruit.setSize(50, 50);
-					}
-					this.setSize(65, 65);
-					selectedFruit = this;
-					selectedFruitIdEnemy = -1;
-					return super.onAreaTouched(pSceneTouchEvent,
-							pTouchAreaLocalX, pTouchAreaLocalY);
-				}
-			};
+			if (secondPlayer)
+				id = card4Id;
+			card4p2 = newSprite(id, CAMERA_WIDTH / 2 + 50, 0 + 100);
 			card4p2.setSize(50, 50);
 			if (secondPlayer)
 				this.mMainScene.registerTouchArea(card4p2);
@@ -371,6 +299,13 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			theClient.subscribeRoom(roomId);
 			theClient.getLiveRoomInfo(roomId);
 		}
+	}
+	
+	private int pickCardId(){
+		int id;
+		while (usedCards[id = (int)Math.floor(Math.random() * Cards.cards.length)+1] == true);
+		usedCards[id] = true;
+		return id;
 	}
 
 	public void addMorePlayer(boolean isMine, String userName,
@@ -455,101 +390,39 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		return false;
 	}
 
+	private String getPosition(float x, float y) {
+		String postfix = "p2";
+		String position = "";
+		float height1 = CAMERA_HEIGHT / 2f;
+		float height2 = CAMERA_HEIGHT * (1f / 4f);
+		if (!secondPlayer) {
+			postfix = "";
+			height2 = height1;
+			height1 = CAMERA_HEIGHT * (3f / 4f);
+		}
+
+		if (x > 0 && x < CAMERA_WIDTH * (1f / 4f) && y < height1 && y > height2) {
+			position = "card1";
+		} else if (x > CAMERA_WIDTH * (1f / 4f) && x < CAMERA_WIDTH * (2f / 4f)
+				&& y < height1 && y > height2) {
+			position = "card2";
+		} else if (x > CAMERA_WIDTH * (2f / 4f) && x < CAMERA_WIDTH * (3f / 4f)
+				&& y < height1 && y > height2) {
+			position = "card3";
+		} else if (x > CAMERA_WIDTH * (3f / 4f) && x < CAMERA_WIDTH
+				&& y < height1 && y > height2) {
+			position = "card4";
+		}
+
+		return position + postfix;
+	}
+
 	private void checkForFruitMove(float x, float y) {
-		Log.d("selectedFromField/selectedFruitIdEnemy", "" + selectedFromField
-				+ "/" + selectedFruitIdEnemy);
 		if (selectedFruitIdEnemy != -1 && selectedFromField) {
-			if (!secondPlayer) {
-				if (x > 0 && x < CAMERA_WIDTH * (1f / 4f)
-						&& y < CAMERA_HEIGHT / 2f
-						&& y > (CAMERA_HEIGHT * (1f / 4f))) {
-					placeObject(selectedFruitId, selectedFruitIdEnemy,
-							"card1p2", null, true);
-				} else if (x > CAMERA_WIDTH * (1f / 4f)
-						&& x < CAMERA_WIDTH * (2f / 4f)
-						&& y < CAMERA_HEIGHT / 2f
-						&& y > (CAMERA_HEIGHT * (1f / 4f))) {
-					placeObject(selectedFruitId, selectedFruitIdEnemy,
-							"card2p2", null, true);
-				} else if (x > CAMERA_WIDTH * (2f / 4f)
-						&& x < CAMERA_WIDTH * (3f / 4f)
-						&& y < CAMERA_HEIGHT / 2f
-						&& y > (CAMERA_HEIGHT * (1f / 4f))) {
-					placeObject(selectedFruitId, selectedFruitIdEnemy,
-							"card3p2", null, true);
-				} else if (x > CAMERA_WIDTH * (3f / 4f) && x < CAMERA_WIDTH
-						&& y < CAMERA_HEIGHT / 2f
-						&& y > (CAMERA_HEIGHT * (1f / 4f))) {
-					placeObject(selectedFruitId, selectedFruitIdEnemy,
-							"card4p2", null, true);
-				}
-			} else {
-				if (x > 0 && x < CAMERA_WIDTH * (1f / 4f)
-						&& y > CAMERA_HEIGHT / 2f
-						&& y < CAMERA_HEIGHT - (CAMERA_HEIGHT * (1f / 4f))) {
-					placeObject(selectedFruitId, selectedFruitIdEnemy, "card1",
-							null, true);
-				} else if (x > CAMERA_WIDTH * (1f / 4f)
-						&& x < CAMERA_WIDTH * (2f / 4f)
-						&& y > CAMERA_HEIGHT / 2f
-						&& y < CAMERA_HEIGHT - (CAMERA_HEIGHT * (1f / 4f))) {
-					placeObject(selectedFruitId, selectedFruitIdEnemy, "card2",
-							null, true);
-				} else if (x > CAMERA_WIDTH * (2f / 4f)
-						&& x < CAMERA_WIDTH * (3f / 4f)
-						&& y > CAMERA_HEIGHT / 2f
-						&& y < CAMERA_HEIGHT - (CAMERA_HEIGHT * (1f / 4f))) {
-					placeObject(selectedFruitId, selectedFruitIdEnemy, "card3",
-							null, true);
-				} else if (x > CAMERA_WIDTH * (3f / 4f) && x < CAMERA_WIDTH
-						&& y > CAMERA_HEIGHT / 2f
-						&& y < CAMERA_HEIGHT - (CAMERA_HEIGHT * (1f / 4f))) {
-					placeObject(selectedFruitId, selectedFruitIdEnemy, "card4",
-							null, true);
-				}
-			}
+			placeObject(selectedFruitId, selectedFruitIdEnemy,
+					getPosition(x, y), null, true);
 		} else if (selectedFruitId != -1 && !selectedFromField) {
-			if (!secondPlayer) {
-				if (x > 0 && x < CAMERA_WIDTH * (1f / 4f)
-						&& y > CAMERA_HEIGHT / 2f
-						&& y < CAMERA_HEIGHT - (CAMERA_HEIGHT * (1f / 4f))) {
-					placeObject(selectedFruitId, -1, "card1", null, true);
-				} else if (x > CAMERA_WIDTH * (1f / 4f)
-						&& x < CAMERA_WIDTH * (2f / 4f)
-						&& y > CAMERA_HEIGHT / 2f
-						&& y < CAMERA_HEIGHT - (CAMERA_HEIGHT * (1f / 4f))) {
-					placeObject(selectedFruitId, -1, "card2", null, true);
-				} else if (x > CAMERA_WIDTH * (2f / 4f)
-						&& x < CAMERA_WIDTH * (3f / 4f)
-						&& y > CAMERA_HEIGHT / 2f
-						&& y < CAMERA_HEIGHT - (CAMERA_HEIGHT * (1f / 4f))) {
-					placeObject(selectedFruitId, -1, "card3", null, true);
-				} else if (x > CAMERA_WIDTH * (3f / 4f) && x < CAMERA_WIDTH
-						&& y > CAMERA_HEIGHT / 2f
-						&& y < CAMERA_HEIGHT - (CAMERA_HEIGHT * (1f / 4f))) {
-					placeObject(selectedFruitId, -1, "card4", null, true);
-				}
-			} else {
-				if (x > 0 && x < CAMERA_WIDTH * (1f / 4f)
-						&& y < CAMERA_HEIGHT / 2f
-						&& y > (CAMERA_HEIGHT * (1f / 4f))) {
-					placeObject(selectedFruitId, -1, "card1p2", null, true);
-				} else if (x > CAMERA_WIDTH * (1f / 4f)
-						&& x < CAMERA_WIDTH * (2f / 4f)
-						&& y < CAMERA_HEIGHT / 2f
-						&& y > (CAMERA_HEIGHT * (1f / 4f))) {
-					placeObject(selectedFruitId, -1, "card2p2", null, true);
-				} else if (x > CAMERA_WIDTH * (2f / 4f)
-						&& x < CAMERA_WIDTH * (3f / 4f)
-						&& y < CAMERA_HEIGHT / 2f
-						&& y > (CAMERA_HEIGHT * (1f / 4f))) {
-					placeObject(selectedFruitId, -1, "card3p2", null, true);
-				} else if (x > CAMERA_WIDTH * (3f / 4f) && x < CAMERA_WIDTH
-						&& y < CAMERA_HEIGHT / 2f
-						&& y > (CAMERA_HEIGHT * (1f / 4f))) {
-					placeObject(selectedFruitId, -1, "card4p2", null, true);
-				}
-			}
+			placeObject(selectedFruitId, -1, getPosition(x, y), null, true);
 		}
 	}
 
@@ -558,7 +431,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			final String userName, boolean updateProperty) {
 		Sprite objectSprite = null;
 
-		if (selectedObjectIdEnemy == Constants.card1Id) {
+		if (selectedObjectIdEnemy == card1Id) {
 			if (secondPlayer) {
 				if (updateProperty) {
 					objectSprite = card1Field;
@@ -573,6 +446,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 				}
 			}
 		}
+		
 		final EngineLock engineLock = this.mEngine.getEngineLock();
 		engineLock.lock();
 		this.mMainScene.detachChild(objectSprite);
@@ -586,6 +460,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		}
 
 	}
+	
 
 	public synchronized void placeObject(final int selectedObjectId,
 			final int selectedObjectIdEnemy, final String destination,
@@ -643,7 +518,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 
 		// create new sprite with new ontouch options
 		Sprite sprite = null;
-		if (selectedObjectId == Constants.card1Id) {
+		if (selectedObjectId == card1Id) {
 			if (secondPlayer) {
 				// handle move of other user
 				if (!updateProperty) {
@@ -654,7 +529,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 						public boolean onAreaTouched(
 								TouchEvent pSceneTouchEvent,
 								float pTouchAreaLocalX, float pTouchAreaLocalY) {
-							selectedFruitIdEnemy = Constants.card1Id;
+							selectedFruitIdEnemy = card1Id;
 							return super.onAreaTouched(pSceneTouchEvent,
 									pTouchAreaLocalX, pTouchAreaLocalY);
 						}
@@ -671,7 +546,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 						public boolean onAreaTouched(
 								TouchEvent pSceneTouchEvent,
 								float pTouchAreaLocalX, float pTouchAreaLocalY) {
-							selectedFruitId = Constants.card1Id;
+							selectedFruitId = card1Id;
 							selectedFromField = true;
 							if (selectedFruit != null) {
 								selectedFruit.setSize(50, 50);
@@ -695,7 +570,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 						public boolean onAreaTouched(
 								TouchEvent pSceneTouchEvent,
 								float pTouchAreaLocalX, float pTouchAreaLocalY) {
-							selectedFruitIdEnemy = Constants.card1Id;
+							selectedFruitIdEnemy = card1Id;
 							return super.onAreaTouched(pSceneTouchEvent,
 									pTouchAreaLocalX, pTouchAreaLocalY);
 						}
@@ -710,7 +585,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 						public boolean onAreaTouched(
 								TouchEvent pSceneTouchEvent,
 								float pTouchAreaLocalX, float pTouchAreaLocalY) {
-							selectedFruitId = Constants.card1Id;
+							selectedFruitId = card1Id;
 							selectedFromField = true;
 							if (selectedFruit != null) {
 								selectedFruit.setSize(50, 50);
@@ -726,7 +601,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 					selectedFruit = card1;
 				}
 			}
-		} else if (selectedObjectId == Constants.card2Id) {
+		} else if (selectedObjectId == card2Id) {
 			if (secondPlayer) {
 				if (!updateProperty) {
 					sprite = new Sprite(CAMERA_WIDTH / 2 + 50,
@@ -752,7 +627,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 					selectedFruit = card2;
 				}
 			}
-		} else if (selectedObjectId == Constants.card3Id) {
+		} else if (selectedObjectId == card3Id) {
 			if (secondPlayer) {
 				if (!updateProperty) {
 					sprite = new Sprite(CAMERA_WIDTH / 2 + 50,
@@ -778,7 +653,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 					selectedFruit = card3;
 				}
 			}
-		} else if (selectedObjectId == Constants.card4Id) {
+		} else if (selectedObjectId == card4Id) {
 			if (secondPlayer) {
 				if (!updateProperty) {
 					sprite = new Sprite(CAMERA_WIDTH / 2 + 50,
@@ -832,7 +707,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			public void run() {
 				if (userName != null) {
 					Utils.showToastAlert(GameActivity.this, userName
-							+ " has changed " + destination + " object");
+							+ " has played a card at position " + destination);
 				}
 			}
 		});
