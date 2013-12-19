@@ -78,14 +78,14 @@ communication and the multiplayer part of the game.
 For the game itself I will use AndEngine&nbsp;(2\. opengl game rendering engine)
 
 # Mockups
-![startScreen](doc/startScreen.png "startScreen")
+![startScreen](startScreen.png "startScreen")
 
-![gamesList](doc/gamesList.png "gamesList")
+![gamesList](gamesList.png "gamesList")
 
-![gamePlay](doc/gamePlay.png "gamePlay")
+![gamePlay](gamePlay.png "gamePlay")
 
 ## Extension
-![extension](doc/extension.png "extension")
+![extension](extension.png "extension")
 
 # Java Programming Style Guide
 
