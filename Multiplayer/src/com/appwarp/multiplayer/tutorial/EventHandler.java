@@ -71,16 +71,23 @@ public class EventHandler implements RoomRequestListener, NotifyListener{
 		}
 		
 		// notification is from a remote user. We need to update UI accordingly.
+		int selectedObjectIdEnemy = -1;
 		for (Map.Entry<String, Object> entry : tableProperties.entrySet()) { 
             if(entry.getValue().toString().length()>0){
 				if(!this.properties.get(entry.getKey()).toString().equals(entry.getValue())){
-					int fruitId = Integer.parseInt(entry.getValue().toString());
+					int fruitId;
+					if (entry.getValue().toString().contains("/")) {
+						String[] parts = entry.getValue().toString().split("/");
+						fruitId = Integer.parseInt(parts[0]);
+						selectedObjectIdEnemy = Integer.parseInt(parts[1]);
+					} else {
+						fruitId = Integer.parseInt(entry.getValue().toString());
+					}
 					properties.put(entry.getKey(), entry.getValue());
-					int selectedObjectIdEnemy = Integer.parseInt(tableProperties.get("selectedObjectIdEnemy").toString());
 					gameScreen.placeObject(fruitId, selectedObjectIdEnemy, entry.getKey(), userName, false);
-					properties.put("selectedObjectIdEnemy", "-1");
 				}
 			}
+			
         }
 	}
 
@@ -123,12 +130,18 @@ public class EventHandler implements RoomRequestListener, NotifyListener{
 			Log.d("hello app", "joined users are null");
 		}
 		properties = event.getProperties();
+		int selectedObjectIdEnemy = -1;
 		for (Map.Entry<String, Object> entry : properties.entrySet()) { 
             if(entry.getValue().toString().length()>0){
-				int fruitId = Integer.parseInt(entry.getValue().toString());
-				int selectedObjectIdEnemy = Integer.parseInt(this.properties.get("selectedObjectIdEnemy").toString());
+				int fruitId;
+				if (entry.getValue().toString().contains("/")) {
+					String[] parts = entry.getValue().toString().split("/");
+					fruitId = Integer.parseInt(parts[0]);
+					selectedObjectIdEnemy = Integer.parseInt(parts[1]);
+				} else {
+					fruitId = Integer.parseInt(entry.getValue().toString());
+				}
 				gameScreen.placeObject(fruitId, selectedObjectIdEnemy, entry.getKey(), null, false);
-				properties.put("selectedObjectIdEnemy", "-1");
 			}
         }
 	}

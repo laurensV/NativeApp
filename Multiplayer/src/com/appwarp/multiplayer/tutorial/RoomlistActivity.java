@@ -88,7 +88,6 @@ public class RoomlistActivity extends Activity implements ZoneRequestListener, R
 		properties.put("card2p2", "");
 		properties.put("card3p2", "");
 		properties.put("card4p2", "");
-		properties.put("selectedObjectIdEnemy", "-1");
 		theClient.createRoom("name"+System.currentTimeMillis(), "Owner", 4, properties);
 	}
 	

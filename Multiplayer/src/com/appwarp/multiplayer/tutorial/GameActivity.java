@@ -2,6 +2,7 @@ package com.appwarp.multiplayer.tutorial;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 import org.andengine.engine.Engine.EngineLock;
@@ -42,20 +43,10 @@ public class GameActivity extends SimpleBaseGameActivity implements
 	private BitmapTextureAtlas mBitmapTextureAtlas3;
 	private BitmapTextureAtlas mBitmapTextureAtlas4;
 
-	private BitmapTextureAtlas fruitBitmapTextureAtlas1;
-	private BitmapTextureAtlas fruitBitmapTextureAtlas2;
-	private BitmapTextureAtlas fruitBitmapTextureAtlas3;
-	private BitmapTextureAtlas fruitBitmapTextureAtlas4;
-
 	private TiledTextureRegion mPlayerTiledTextureRegion1;
 	private TiledTextureRegion mPlayerTiledTextureRegion2;
 	private TiledTextureRegion mPlayerTiledTextureRegion3;
 	private TiledTextureRegion mPlayerTiledTextureRegion4;
-
-	private TiledTextureRegion mFruitTiledTextureRegion1;
-	private TiledTextureRegion mFruitTiledTextureRegion2;
-	private TiledTextureRegion mFruitTiledTextureRegion3;
-	private TiledTextureRegion mFruitTiledTextureRegion4;
 
 	private RepeatingSpriteBackground mGrassBackground;
 
@@ -64,6 +55,8 @@ public class GameActivity extends SimpleBaseGameActivity implements
 	private Random ramdom = new Random();
 
 	private HashMap<String, User> userMap = new HashMap<String, User>();
+
+	private Map<Integer, BitmapTextureAtlas> textures = new HashMap<Integer, BitmapTextureAtlas>();
 
 	private HashMap<String, Sprite> objectMap = new HashMap<String, Sprite>();
 
@@ -77,8 +70,10 @@ public class GameActivity extends SimpleBaseGameActivity implements
 	private Sprite card1Field, card2Field, card3Field, card4Field;
 	private Sprite card1p2Field, card2p2Field, card3p2Field, card4p2Field;
 
+	private int textureCount = 0;
+
 	private int selectedFruitIdEnemy = -1;
-	
+
 	private int card1Id, card2Id, card3Id, card4Id;
 	private boolean[] usedCards;
 
@@ -120,16 +115,6 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		this.mBitmapTextureAtlas4 = new BitmapTextureAtlas(
 				this.getTextureManager(), 32, 32);
 
-		this.fruitBitmapTextureAtlas1 = new BitmapTextureAtlas(
-				this.getTextureManager(), 128, 128);
-		this.fruitBitmapTextureAtlas2 = new BitmapTextureAtlas(
-				this.getTextureManager(), 128, 128);
-		this.fruitBitmapTextureAtlas3 = new BitmapTextureAtlas(
-				this.getTextureManager(), 128, 128);
-		this.fruitBitmapTextureAtlas4 = new BitmapTextureAtlas(
-				this.getTextureManager(), 128, 128);
-		
-
 		this.mPlayerTiledTextureRegion1 = BitmapTextureAtlasTextureRegionFactory
 				.createTiledFromAsset(this.mBitmapTextureAtlas1, this,
 						"monster1.png", 0, 0, 1, 1);
@@ -142,62 +127,52 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		this.mPlayerTiledTextureRegion4 = BitmapTextureAtlasTextureRegionFactory
 				.createTiledFromAsset(this.mBitmapTextureAtlas4, this,
 						"monster4.png", 0, 0, 1, 1);
-		usedCards = new boolean[Cards.cards.length + 1];
+		usedCards = new boolean[Cards.cardsp1.length + 1];
 		Arrays.fill(usedCards, false);
-		
+
 		card1Id = pickCardId();
 		card2Id = pickCardId();
 		card3Id = pickCardId();
 		card4Id = pickCardId();
-		
-
-		this.mFruitTiledTextureRegion1 = BitmapTextureAtlasTextureRegionFactory
-				.createTiledFromAsset(this.fruitBitmapTextureAtlas1, this,
-						"card" + card1Id + ".png", 0, 0, 1, 1);
-		this.mFruitTiledTextureRegion2 = BitmapTextureAtlasTextureRegionFactory
-				.createTiledFromAsset(this.fruitBitmapTextureAtlas2, this,
-						"card" + card2Id + ".png", 0, 0, 1, 1);
-		this.mFruitTiledTextureRegion3 = BitmapTextureAtlasTextureRegionFactory
-				.createTiledFromAsset(this.fruitBitmapTextureAtlas3, this,
-						"card" + card3Id + ".png", 0, 0, 1, 1);
-		this.mFruitTiledTextureRegion4 = BitmapTextureAtlasTextureRegionFactory
-				.createTiledFromAsset(this.fruitBitmapTextureAtlas4, this,
-						"card" + card4Id + ".png", 0, 0, 1, 1);
 
 		this.mBitmapTextureAtlas1.load();
 		this.mBitmapTextureAtlas2.load();
 		this.mBitmapTextureAtlas3.load();
 		this.mBitmapTextureAtlas4.load();
 
-		this.fruitBitmapTextureAtlas1.load();
-		this.fruitBitmapTextureAtlas2.load();
-		this.fruitBitmapTextureAtlas3.load();
-		this.fruitBitmapTextureAtlas4.load();
-
 		Intent intent = getIntent();
 		roomId = intent.getStringExtra("roomId");
 		init(roomId);
 	}
-	
-	private Sprite newSprite(final int id, float x, float y){
+
+	private Sprite newSprite(final int id, float x, float y) {
 		BitmapTextureAtlas fruitBitmapTextureAtlas1;
 		TiledTextureRegion mFruitTiledTextureRegion1;
-		
+
 		fruitBitmapTextureAtlas1 = new BitmapTextureAtlas(
 				this.getTextureManager(), 128, 128);
-		
+
 		mFruitTiledTextureRegion1 = BitmapTextureAtlasTextureRegionFactory
-				.createTiledFromAsset(fruitBitmapTextureAtlas1, this,
-						"card" + id + ".png", 0, 0, 1, 1);
-		
+				.createTiledFromAsset(fruitBitmapTextureAtlas1, this, Cards.getName(id, secondPlayer) + ".png", 0, 0, 1, 1);
+
 		fruitBitmapTextureAtlas1.load();
-		
-		return new Sprite(x, y,
-				mFruitTiledTextureRegion1,
+		this.textures.put(textureCount, fruitBitmapTextureAtlas1);
+		textureCount++;
+
+		return new Sprite(x, y, mFruitTiledTextureRegion1,
 				this.getVertexBufferObjectManager()) {
 			@Override
 			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
 					float pTouchAreaLocalX, float pTouchAreaLocalY) {
+				if (id != 0){
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						Utils.showToastAlert(GameActivity.this,
+								"attack: " + Cards.getAttack(id, secondPlayer) + ". health: " + Cards.getHealth(id, secondPlayer));
+					}
+				});
+				}
 				selectedFruitId = id;
 				selectedFromField = false;
 				if (selectedFruit != null) {
@@ -206,12 +181,86 @@ public class GameActivity extends SimpleBaseGameActivity implements
 				this.setSize(65, 65);
 				selectedFruit = this;
 				selectedFruitIdEnemy = -1;
-				return super.onAreaTouched(pSceneTouchEvent,
-						pTouchAreaLocalX, pTouchAreaLocalY);
+				return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX,
+						pTouchAreaLocalY);
 			}
 		};
 	}
 
+	private Sprite newSpriteOtherField(final int id, float x, float y) {
+		BitmapTextureAtlas fruitBitmapTextureAtlas1;
+		TiledTextureRegion mFruitTiledTextureRegion1;
+
+		fruitBitmapTextureAtlas1 = new BitmapTextureAtlas(
+				this.getTextureManager(), 128, 128);
+
+		mFruitTiledTextureRegion1 = BitmapTextureAtlasTextureRegionFactory
+				.createTiledFromAsset(fruitBitmapTextureAtlas1, this, Cards.getName(id, !secondPlayer) + ".png", 0, 0, 1, 1);
+
+		fruitBitmapTextureAtlas1.load();
+		this.textures.put(textureCount, fruitBitmapTextureAtlas1);
+		textureCount++;
+
+		fruitBitmapTextureAtlas1.load();
+		return new Sprite(x, y, mFruitTiledTextureRegion1,
+				this.getVertexBufferObjectManager()) {
+			@Override
+			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
+					float pTouchAreaLocalX, float pTouchAreaLocalY) {
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						Utils.showToastAlert(GameActivity.this,
+								"attack: " + Cards.getAttack(id, !secondPlayer) + ". health: " + Cards.getHealth(id, !secondPlayer));
+					}
+				});
+				selectedFruitIdEnemy = id;
+				return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX,
+						pTouchAreaLocalY);
+			}
+		};
+
+	}
+
+	private Sprite newSpriteOwnField(final int id, float x, float y) {
+		BitmapTextureAtlas fruitBitmapTextureAtlas1;
+		TiledTextureRegion mFruitTiledTextureRegion1;
+
+		fruitBitmapTextureAtlas1 = new BitmapTextureAtlas(
+				this.getTextureManager(), 128, 128);
+
+		mFruitTiledTextureRegion1 = BitmapTextureAtlasTextureRegionFactory
+				.createTiledFromAsset(fruitBitmapTextureAtlas1, this, Cards.getName(id, secondPlayer) + ".png", 0, 0, 1, 1);
+
+		fruitBitmapTextureAtlas1.load();
+		this.textures.put(textureCount, fruitBitmapTextureAtlas1);
+		textureCount++;
+
+		return new Sprite(x, y, mFruitTiledTextureRegion1,
+				this.getVertexBufferObjectManager()) {
+			@Override
+			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
+					float pTouchAreaLocalX, float pTouchAreaLocalY) {
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						Utils.showToastAlert(GameActivity.this,
+								"attack: " + Cards.getAttack(id, secondPlayer) + ". health: " + Cards.getHealth(id, secondPlayer));
+					}
+				});
+				selectedFruitId = id;
+				selectedFromField = true;
+				if (selectedFruit != null) {
+					selectedFruit.setSize(50, 50);
+				}
+				this.setSize(65, 65);
+				selectedFruit = this;
+				selectedFruitIdEnemy = -1;
+				return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX,
+						pTouchAreaLocalY);
+			}
+		};
+	}
 
 	@Override
 	protected Scene onCreateScene() {
@@ -224,11 +273,12 @@ public class GameActivity extends SimpleBaseGameActivity implements
 
 	private void initObjects() {
 		if (!initialize) {
-			int id = 2;
+			int id = 1;
 			if (!secondPlayer)
 				id = card1Id;
 			// Adding fruit here
-			card1 = newSprite(id, CAMERA_WIDTH / 2 - 50 * 2, CAMERA_HEIGHT - 100);
+			card1 = newSprite(id, CAMERA_WIDTH / 2 - 50 * 2,
+					CAMERA_HEIGHT - 100);
 			card1.setSize(50, 50);
 			if (!secondPlayer)
 				this.mMainScene.registerTouchArea(card1);
@@ -254,8 +304,8 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			if (!secondPlayer)
 				this.mMainScene.registerTouchArea(card4);
 			this.mMainScene.attachChild(card4);
-			
-			id = 2;
+
+			id = 1;
 
 			// Adding fruit here for player 2
 			if (secondPlayer)
@@ -286,7 +336,9 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			if (secondPlayer)
 				this.mMainScene.registerTouchArea(card4p2);
 			this.mMainScene.attachChild(card4p2);
-
+			
+			Cards.initCards();
+			
 			initialize = true;
 		}
 	}
@@ -300,10 +352,12 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			theClient.getLiveRoomInfo(roomId);
 		}
 	}
-	
-	private int pickCardId(){
+
+	private int pickCardId() {
 		int id;
-		while (usedCards[id = (int)Math.floor(Math.random() * Cards.cards.length)+1] == true);
+		while (usedCards[id = (int) Math.floor(Math.random()
+				* Cards.cardsp1.length) + 1] == true)
+			;
 		usedCards[id] = true;
 		return id;
 	}
@@ -339,7 +393,6 @@ public class GameActivity extends SimpleBaseGameActivity implements
 				this.secondPlayer = true;
 			}
 			initObjects();
-			Log.d("INIT", "INIT");
 			this.mMainScene.setOnSceneTouchListener(this);
 		}
 
@@ -362,7 +415,6 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		HashMap<String, Object> table = new HashMap<String, Object>();
 		table.put(position, objectType);
 		theClient.updateRoomProperties(roomId, table, null);
-		// theClient.getLiveRoomInfo(roomId);
 	}
 
 	public void handleLeave(String name) {
@@ -391,30 +443,38 @@ public class GameActivity extends SimpleBaseGameActivity implements
 	}
 
 	private String getPosition(float x, float y) {
-		String postfix = "p2";
 		String position = "";
 		float height1 = CAMERA_HEIGHT / 2f;
 		float height2 = CAMERA_HEIGHT * (1f / 4f);
-		if (!secondPlayer) {
-			postfix = "";
-			height2 = height1;
-			height1 = CAMERA_HEIGHT * (3f / 4f);
-		}
 
 		if (x > 0 && x < CAMERA_WIDTH * (1f / 4f) && y < height1 && y > height2) {
-			position = "card1";
+			position = "card1p2";
 		} else if (x > CAMERA_WIDTH * (1f / 4f) && x < CAMERA_WIDTH * (2f / 4f)
 				&& y < height1 && y > height2) {
-			position = "card2";
+			position = "card2p2";
 		} else if (x > CAMERA_WIDTH * (2f / 4f) && x < CAMERA_WIDTH * (3f / 4f)
 				&& y < height1 && y > height2) {
-			position = "card3";
+			position = "card3p2";
 		} else if (x > CAMERA_WIDTH * (3f / 4f) && x < CAMERA_WIDTH
 				&& y < height1 && y > height2) {
+			position = "card4p2";
+		}
+
+		height2 = CAMERA_HEIGHT * (3f / 4f);
+		if (x > 0 && x < CAMERA_WIDTH * (1f / 4f) && y < height2 && y > height1) {
+			position = "card1";
+		} else if (x > CAMERA_WIDTH * (1f / 4f) && x < CAMERA_WIDTH * (2f / 4f)
+				&& y < height2 && y > height1) {
+			position = "card2";
+		} else if (x > CAMERA_WIDTH * (2f / 4f) && x < CAMERA_WIDTH * (3f / 4f)
+				&& y < height2 && y > height1) {
+			position = "card3";
+		} else if (x > CAMERA_WIDTH * (3f / 4f) && x < CAMERA_WIDTH
+				&& y < height2 && y > height1) {
 			position = "card4";
 		}
 
-		return position + postfix;
+		return position;
 	}
 
 	private void checkForFruitMove(float x, float y) {
@@ -431,22 +491,10 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			final String userName, boolean updateProperty) {
 		Sprite objectSprite = null;
 
-		if (selectedObjectIdEnemy == card1Id) {
-			if (secondPlayer) {
-				if (updateProperty) {
-					objectSprite = card1Field;
-				} else {
-					objectSprite = card1p2Field;
-				}
-			} else {
-				if (updateProperty) {
-					objectSprite = card1p2Field;
-				} else {
-					objectSprite = card1Field;
-				}
-			}
+		if (objectMap.get(destination) != null) {
+			objectSprite = objectMap.get(destination);
 		}
-		
+
 		final EngineLock engineLock = this.mEngine.getEngineLock();
 		engineLock.lock();
 		this.mMainScene.detachChild(objectSprite);
@@ -455,18 +503,25 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		engineLock.unlock();
 		if (updateProperty) {
 			selectedFruitIdEnemy = -1;
-			updateProperty("selectedObjectIdEnemy", selectedObjectIdEnemy + "");
+			updateProperty(destination, selectedObject + "/"
+					+ selectedObjectIdEnemy);
 
 		}
+		selectedFruitId = -1;
+		selectedFromField = false;
+		if (selectedFruit != null) {
+			selectedFruit.setSize(50, 50);
+		}
+		selectedFruit = null;
+		objectMap.remove(destination);
 
 	}
-	
 
 	public synchronized void placeObject(final int selectedObjectId,
 			final int selectedObjectIdEnemy, final String destination,
 			final String userName, boolean updateProperty) {
 		Log.d("selectedObjectId/selectedFruitIdEnemy", "" + selectedObjectId
-				+ "/" + selectedObjectIdEnemy);
+				+ "/" + selectedObjectIdEnemy + selectedFromField);
 
 		if (selectedObjectIdEnemy != -1
 				&& (!updateProperty || selectedFromField)) {
@@ -505,7 +560,6 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		}
 
 		if (objectMap.get(destination) != null) {
-			// Sprite objectSprite = objectMap.get(destination);
 			runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
@@ -517,167 +571,59 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		}
 
 		// create new sprite with new ontouch options
+		boolean p2 = false;
 		Sprite sprite = null;
-		if (selectedObjectId == card1Id) {
-			if (secondPlayer) {
-				// handle move of other user
-				if (!updateProperty) {
-					card1Field = new Sprite(CAMERA_WIDTH / 2 + 50,
-							CAMERA_HEIGHT - 100, mFruitTiledTextureRegion1,
-							this.getVertexBufferObjectManager()) {
-						@Override
-						public boolean onAreaTouched(
-								TouchEvent pSceneTouchEvent,
-								float pTouchAreaLocalX, float pTouchAreaLocalY) {
-							selectedFruitIdEnemy = card1Id;
-							return super.onAreaTouched(pSceneTouchEvent,
-									pTouchAreaLocalX, pTouchAreaLocalY);
-						}
-					};
-					sprite = card1Field;
-					selectedFruit = card1;
-
-					// handle move of current user
-				} else {
-					card1p2Field = new Sprite(CAMERA_WIDTH / 2 + 50, 0 + 100,
-							mFruitTiledTextureRegion1,
-							this.getVertexBufferObjectManager()) {
-						@Override
-						public boolean onAreaTouched(
-								TouchEvent pSceneTouchEvent,
-								float pTouchAreaLocalX, float pTouchAreaLocalY) {
-							selectedFruitId = card1Id;
-							selectedFromField = true;
-							if (selectedFruit != null) {
-								selectedFruit.setSize(50, 50);
-							}
-							this.setSize(65, 65);
-							selectedFruit = this;
-							selectedFruitIdEnemy = -1;
-							return super.onAreaTouched(pSceneTouchEvent,
-									pTouchAreaLocalX, pTouchAreaLocalY);
-						}
-					};
-					sprite = card1p2Field;
-					selectedFruit = card1p2;
-				}
-			} else {
-				if (!updateProperty) {
-					card1p2Field = new Sprite(CAMERA_WIDTH / 2 + 50, 0 + 100,
-							mFruitTiledTextureRegion1,
-							this.getVertexBufferObjectManager()) {
-						@Override
-						public boolean onAreaTouched(
-								TouchEvent pSceneTouchEvent,
-								float pTouchAreaLocalX, float pTouchAreaLocalY) {
-							selectedFruitIdEnemy = card1Id;
-							return super.onAreaTouched(pSceneTouchEvent,
-									pTouchAreaLocalX, pTouchAreaLocalY);
-						}
-					};
-					sprite = card1p2Field;
-					selectedFruit = card1p2;
-				} else {
-					card1Field = new Sprite(CAMERA_WIDTH / 2 + 50,
-							CAMERA_HEIGHT - 100, mFruitTiledTextureRegion1,
-							this.getVertexBufferObjectManager()) {
-						@Override
-						public boolean onAreaTouched(
-								TouchEvent pSceneTouchEvent,
-								float pTouchAreaLocalX, float pTouchAreaLocalY) {
-							selectedFruitId = card1Id;
-							selectedFromField = true;
-							if (selectedFruit != null) {
-								selectedFruit.setSize(50, 50);
-							}
-							this.setSize(65, 65);
-							selectedFruit = this;
-							selectedFruitIdEnemy = -1;
-							return super.onAreaTouched(pSceneTouchEvent,
-									pTouchAreaLocalX, pTouchAreaLocalY);
-						}
-					};
-					sprite = card1Field;
-					selectedFruit = card1;
-				}
+		if (secondPlayer) {
+			if (!updateProperty) { // handle move of other user
+				sprite = newSpriteOtherField(selectedObjectId,
+						CAMERA_WIDTH / 2, CAMERA_HEIGHT - 100);
+			} else { // handle move of current user
+				sprite = newSpriteOwnField(selectedObjectId, CAMERA_WIDTH / 2,
+						0 + 100);
+				p2 = true;
 			}
-		} else if (selectedObjectId == card2Id) {
-			if (secondPlayer) {
-				if (!updateProperty) {
-					sprite = new Sprite(CAMERA_WIDTH / 2 + 50,
-							CAMERA_HEIGHT - 100, mFruitTiledTextureRegion2,
-							this.getVertexBufferObjectManager());
-					selectedFruit = card2;
-				} else {
-					sprite = new Sprite(CAMERA_WIDTH / 2 + 50, 0 + 100,
-							mFruitTiledTextureRegion2,
-							this.getVertexBufferObjectManager());
-					selectedFruit = card2p2;
-				}
+		} else {
+			if (!updateProperty) {
+				sprite = newSpriteOtherField(selectedObjectId,
+						CAMERA_WIDTH / 2, 0 + 100);
+				p2 = true;
 			} else {
-				if (!updateProperty) {
-					sprite = new Sprite(CAMERA_WIDTH / 2 + 50, 0 + 100,
-							mFruitTiledTextureRegion2,
-							this.getVertexBufferObjectManager());
-					selectedFruit = card2p2;
-				} else {
-					sprite = new Sprite(CAMERA_WIDTH / 2 + 50,
-							CAMERA_HEIGHT - 100, mFruitTiledTextureRegion2,
-							this.getVertexBufferObjectManager());
-					selectedFruit = card2;
-				}
+				sprite = newSpriteOwnField(selectedObjectId, CAMERA_WIDTH / 2,
+						CAMERA_HEIGHT - 100);
+			}
+		}
+		if (selectedObjectId == card1Id) {
+			if (p2) {
+				card1p2Field = sprite;
+				selectedFruit = card1p2;
+			} else {
+				card1Field = sprite;
+				selectedFruit = card1;
+			}
+
+		} else if (selectedObjectId == card2Id) {
+			if (p2) {
+				card2p2Field = sprite;
+				selectedFruit = card2p2;
+			} else {
+				card2Field = sprite;
+				selectedFruit = card2;
 			}
 		} else if (selectedObjectId == card3Id) {
-			if (secondPlayer) {
-				if (!updateProperty) {
-					sprite = new Sprite(CAMERA_WIDTH / 2 + 50,
-							CAMERA_HEIGHT - 100, mFruitTiledTextureRegion3,
-							this.getVertexBufferObjectManager());
-					selectedFruit = card3;
-				} else {
-					sprite = new Sprite(CAMERA_WIDTH / 2 + 50, 0 + 100,
-							mFruitTiledTextureRegion3,
-							this.getVertexBufferObjectManager());
-					selectedFruit = card3p2;
-				}
+			if (p2) {
+				card3p2Field = sprite;
+				selectedFruit = card3p2;
 			} else {
-				if (!updateProperty) {
-					sprite = new Sprite(CAMERA_WIDTH / 2 + 50, 0 + 100,
-							mFruitTiledTextureRegion3,
-							this.getVertexBufferObjectManager());
-					selectedFruit = card3p2;
-				} else {
-					sprite = new Sprite(CAMERA_WIDTH / 2 + 50,
-							CAMERA_HEIGHT - 100, mFruitTiledTextureRegion3,
-							this.getVertexBufferObjectManager());
-					selectedFruit = card3;
-				}
+				card3Field = sprite;
+				selectedFruit = card3;
 			}
 		} else if (selectedObjectId == card4Id) {
-			if (secondPlayer) {
-				if (!updateProperty) {
-					sprite = new Sprite(CAMERA_WIDTH / 2 + 50,
-							CAMERA_HEIGHT - 100, mFruitTiledTextureRegion4,
-							this.getVertexBufferObjectManager());
-					selectedFruit = card4;
-				} else {
-					sprite = new Sprite(CAMERA_WIDTH / 2 + 50, 0 + 100,
-							mFruitTiledTextureRegion4,
-							this.getVertexBufferObjectManager());
-					selectedFruit = card4p2;
-				}
+			if (p2) {
+				card4p2Field = sprite;
+				selectedFruit = card4p2;
 			} else {
-				if (!updateProperty) {
-					sprite = new Sprite(CAMERA_WIDTH / 2 + 50, 0 + 100,
-							mFruitTiledTextureRegion4,
-							this.getVertexBufferObjectManager());
-					selectedFruit = card4p2;
-				} else {
-					sprite = new Sprite(CAMERA_WIDTH / 2 + 50,
-							CAMERA_HEIGHT - 100, mFruitTiledTextureRegion4,
-							this.getVertexBufferObjectManager());
-					selectedFruit = card4;
-				}
+				card4Field = sprite;
+				selectedFruit = card4;
 			}
 		} else {
 			return;
@@ -740,7 +686,32 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			theClient.removeRoomRequestListener(eventHandler);
 			theClient.removeNotificationListener(eventHandler);
 		}
+		clearResources();
 		super.onBackPressed();
+	}
+
+	protected void onStop() {
+		if (theClient != null) {
+			handleLeave(Utils.userName);
+			theClient.leaveRoom(roomId);
+			theClient.unsubscribeRoom(roomId);
+			theClient.removeRoomRequestListener(eventHandler);
+			theClient.removeNotificationListener(eventHandler);
+		}
+		clearResources();
+		super.onStop();
+	}
+
+	protected void onDestroy() {
+		if (theClient != null) {
+			handleLeave(Utils.userName);
+			theClient.leaveRoom(roomId);
+			theClient.unsubscribeRoom(roomId);
+			theClient.removeRoomRequestListener(eventHandler);
+			theClient.removeNotificationListener(eventHandler);
+		}
+		clearResources();
+		super.onDestroy();
 	}
 
 	public void clearResources() {
@@ -748,10 +719,12 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		this.mBitmapTextureAtlas2.unload();
 		this.mBitmapTextureAtlas3.unload();
 		this.mBitmapTextureAtlas4.unload();
-		this.fruitBitmapTextureAtlas1.unload();
-		this.fruitBitmapTextureAtlas2.unload();
-		this.fruitBitmapTextureAtlas3.unload();
-		this.fruitBitmapTextureAtlas4.unload();
+		for (Map.Entry<Integer, BitmapTextureAtlas> e : textures.entrySet()) {
+			this.mEngine.getTextureManager().unloadTexture(e.getValue());
+			e.getValue().unload();
+		}
+
 		this.mMainScene.dispose();
+		System.gc();
 	}
 }
