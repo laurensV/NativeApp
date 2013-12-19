@@ -1,4 +1,4 @@
-Hearthstone (WILL FINISH BETA TOMORROW)
+Hearthstone
 =======
 
 **author:** Laurens Verspeek - 10184465<br>
