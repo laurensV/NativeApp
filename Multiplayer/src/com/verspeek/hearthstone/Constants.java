@@ -1,4 +1,4 @@
-package com.appwarp.multiplayer.tutorial;
+package com.verspeek.hearthstone;
 
 public class Constants {
 

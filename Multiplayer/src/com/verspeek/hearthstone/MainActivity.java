@@ -1,4 +1,4 @@
-package com.appwarp.multiplayer.tutorial;
+package com.verspeek.hearthstone;
 
 
 import android.app.Activity;
@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 
+import com.verspeek.hearthstone.R;
 import com.shephertz.app42.gaming.multiplayer.client.WarpClient;
 import com.shephertz.app42.gaming.multiplayer.client.command.WarpResponseResultCode;
 import com.shephertz.app42.gaming.multiplayer.client.events.ConnectEvent;

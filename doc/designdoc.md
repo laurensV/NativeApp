@@ -2,9 +2,91 @@ Design Document
 ===============
 
 ## Classes and methods
---
+Cards class (which holds all the information about the deck of cards)
+
+User class (which holds all the information about the current user)
+
+Utils class (methods which will be used a lot over the different activities)
+
+Mainactivity
+
+&nbsp;- init&nbsp;
+
+&nbsp;- onCharacterClicked (choose a character)
+
+&nbsp;- onPlayGameClicked (make connection with the warpapp server)
+
+&nbsp;- onConnect (go to GameListActivity)
+
+GameListActivity
+
+&nbsp;- joinRoom (join a game)
+
+&nbsp;- goToGameScreen (go to GameActivity)
+
+&nbsp;- onJoinRoomDone (call goToGameScreen)
+
+&nbsp;- onGetMatchedRoomsDone (make list of open games)
+
+&nbsp;- onJoinNewRoomClicked (create a new game)&nbsp;
+
+&nbsp;- onCreateRoomDone (join newly created game)
+
+GameActivity
+
+&nbsp;- newSprite (create new sprite)
+
+&nbsp;- onCreateEngineOptions (create andengine)
+
+&nbsp;- onCreateResources (create resources for engine)
+
+&nbsp;- onCreateScene (create the scene)
+
+&nbsp;- initObjects (initialize all sprites)
+
+&nbsp;- pickRandomCard (pick a random card from your deck)
+
+&nbsp;- addMorePlayer (handle a new player joining the game)
+
+&nbsp;- sendUpdateEvent (send event to other player)
+
+&nbsp;- handleLeave (handle players leaving)
+
+&nbsp;- onSceneTouchEvent (handle the touch events of the users)
+
+&nbsp;- playObject (play a card)
+
+&nbsp;- updateMove (update your position)
+
+EventHandler (handle room events and communication)
+
+&nbsp;- onChatReceived (handle a received event)
+
+&nbsp;- onUserChangeRoomProperty (handle a change of properties from other user)
+
+&nbsp;- onUserJoinedRoom (handle new users)
+
+&nbsp;- onUserLeftRoom (handle leaving users)
+
+&nbsp;- onGetLiveRoomInfoDone (get properties of room and handle them)
+
 ## Implementation details
---
+
+I will be using a server which has an API and is hosted and by AppWarp for the
+communication and the multiplayer part of the game.
+
+For the game itself I will use AndEngine&nbsp;(2\. opengl game rendering engine)
+
+# Mockups
+![startScreen](doc/startScreen.png "startScreen")
+
+![gamesList](doc/gamesList.png "gamesList")
+
+![gamePlay](doc/gamePlay.png "gamePlay")
+
+## Extension
+![extension](doc/extension.png "extension")
+
 # Java Programming Style Guide
 
 ## 1. Formatting

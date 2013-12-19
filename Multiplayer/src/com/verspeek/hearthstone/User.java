@@ -1,4 +1,4 @@
-package com.appwarp.multiplayer.tutorial;
+package com.verspeek.hearthstone;
 
 import org.andengine.entity.sprite.Sprite;
 

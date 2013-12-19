@@ -1,4 +1,4 @@
-package com.appwarp.multiplayer.tutorial;
+package com.verspeek.hearthstone;
 
 public class Cards {
 	
@@ -9,12 +9,19 @@ public class Cards {
 		cardsp1 = new String[][] {
 				  //{name, attack, health}
 					{"card0", "0", "0"},
-					{"card1", "2", "3"},
-					{"card2", "5", "6"},
-					{"card3", "1", "2"},
-					{"card4", "8", "9"}
+					{"banana", "2", "3"},
+					{"grape", "5", "6"},
+					{"pineapple", "1", "2"},
+					{"strawberry", "8", "9"}
 			};
-		cardsp2 = cardsp1;
+		cardsp2 = new String[][] {
+				  //{name, attack, health}
+					{"card0", "0", "0"},
+					{"banana", "2", "3"},
+					{"grape", "5", "6"},
+					{"pineapple", "1", "2"},
+					{"strawberry", "8", "9"}
+			};
 	}
 	
 	public static String getName(int id, boolean secondPlayer){
@@ -28,26 +35,26 @@ public class Cards {
 		if (secondPlayer) 
 			return Integer.parseInt(cardsp2[id][1]);
 		else
-		return Integer.parseInt(cardsp1[id][1]);
+			return Integer.parseInt(cardsp1[id][1]);
 	}
 	public static int getHealth(int id, boolean secondPlayer){
 		if (secondPlayer) 
 			return Integer.parseInt(cardsp2[id][2]);
 		else
-		return Integer.parseInt(cardsp1[id][2]);
+			return Integer.parseInt(cardsp1[id][2]);
 	}
 	
 	public static void setAttack(int id, int attack, boolean secondPlayer){
 		if (secondPlayer) 
 			cardsp2[id][1] = ""+ attack;
 		else
-		cardsp1[id][1] = ""+ attack;
+			cardsp1[id][1] = ""+ attack;
 	}
 	public static void setHealth(int id, int health, boolean secondPlayer){
 		if (secondPlayer) 
 			cardsp2[id][2] = ""+ health;
 		else
-		cardsp1[id][2] = ""+ health;
+			cardsp1[id][2] = ""+ health;
 	}
 
 }

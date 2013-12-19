@@ -1,4 +1,4 @@
-package com.appwarp.multiplayer.tutorial;
+package com.verspeek.hearthstone;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,6 +34,13 @@ public class EventHandler implements RoomRequestListener, NotifyListener{
 				float xCord = Float.parseFloat(object.get("X")+"");
 				float yCord = Float.parseFloat(object.get("Y")+"");
 				gameScreen.updateMove(true, sender, xCord, yCord);
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+			try{
+				JSONObject object = new JSONObject(message);
+				String turn = object.get("turn")+"";
+				gameScreen.myTurn = true;
 			}catch(Exception e){
 				e.printStackTrace();
 			}

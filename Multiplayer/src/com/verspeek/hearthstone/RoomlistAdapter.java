@@ -1,4 +1,4 @@
-package com.appwarp.multiplayer.tutorial;
+package com.verspeek.hearthstone;
 
 import java.util.ArrayList;
 
@@ -10,6 +10,7 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.verspeek.hearthstone.R;
 import com.shephertz.app42.gaming.multiplayer.client.events.RoomData;
 
 public class RoomlistAdapter extends BaseAdapter {

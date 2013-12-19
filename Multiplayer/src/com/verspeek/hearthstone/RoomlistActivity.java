@@ -1,4 +1,4 @@
-package com.appwarp.multiplayer.tutorial;
+package com.verspeek.hearthstone;
 
 import java.util.HashMap;
 import android.app.Activity;
@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
+
+import com.verspeek.hearthstone.R;
 import com.shephertz.app42.gaming.multiplayer.client.WarpClient;
 import com.shephertz.app42.gaming.multiplayer.client.command.WarpResponseResultCode;
 import com.shephertz.app42.gaming.multiplayer.client.events.AllRoomsEvent;
@@ -46,6 +48,8 @@ public class RoomlistActivity extends Activity implements ZoneRequestListener, R
 	
 	public void onStart(){
 		super.onStart();
+		listView = (ListView)findViewById(R.id.roomList);
+		roomlistAdapter = new RoomlistAdapter(this);
 		theClient.addZoneRequestListener(this);
 		theClient.getRoomInRange(1, 1);// trying to get room with at min and max 1 user
 	}
@@ -127,7 +131,7 @@ public class RoomlistActivity extends Activity implements ZoneRequestListener, R
 			@Override
 			public void run() {
 				RoomData[] roomDataList = event.getRoomsData();
-				if(roomDataList.length>0){
+				if(roomDataList != null && roomDataList.length>0){
 					roomlistAdapter.setData(roomDataList);
 					listView.setAdapter(roomlistAdapter);
 				}else{
