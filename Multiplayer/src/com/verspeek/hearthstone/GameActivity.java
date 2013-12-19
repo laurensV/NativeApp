@@ -82,10 +82,10 @@ public class GameActivity extends SimpleBaseGameActivity implements
 	private boolean secondPlayer = false;
 	private boolean initialize = false;
 	private boolean selectedFromField = false;
-	
-    /* variable for counting two successive up-down events */
+
+	/* variable for counting two successive up-down events */
 	private int clickCount = 0;
-	/*variable for storing the time of first click*/
+	/* variable for storing the time of first click */
 	private long startTime;
 
 	@Override
@@ -107,9 +107,9 @@ public class GameActivity extends SimpleBaseGameActivity implements
 
 	@Override
 	protected void onCreateResources() {
-		
+
 		Cards.initCards();
-		
+
 		/* Load all the textures this game needs. */
 		this.mGrassBackground = new RepeatingSpriteBackground(CAMERA_WIDTH,
 				CAMERA_HEIGHT, this.getTextureManager(),
@@ -137,9 +137,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		this.mPlayerTiledTextureRegion4 = BitmapTextureAtlasTextureRegionFactory
 				.createTiledFromAsset(this.mBitmapTextureAtlas4, this,
 						"monster4.png", 0, 0, 1, 1);
-		
 
-		
 		usedCards = new boolean[Cards.cardsp1.length + 1];
 		Arrays.fill(usedCards, false);
 
@@ -147,8 +145,6 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		card2Id = pickCardId();
 		card3Id = pickCardId();
 		card4Id = pickCardId();
-		
-
 
 		this.mBitmapTextureAtlas1.load();
 		this.mBitmapTextureAtlas2.load();
@@ -159,7 +155,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		roomId = intent.getStringExtra("roomId");
 		init(roomId);
 	}
-	
+
 	private void endTurnSprite() {
 		BitmapTextureAtlas cardBitmapTextureAtlas1;
 		TiledTextureRegion mCardTiledTextureRegion1;
@@ -175,8 +171,8 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		this.textures.put(textureCount, cardBitmapTextureAtlas1);
 		textureCount++;
 
-		Sprite sprite = new Sprite(0, (float) (CAMERA_HEIGHT/2.0 - 50), mCardTiledTextureRegion1,
-				this.getVertexBufferObjectManager()) {
+		Sprite sprite = new Sprite(0, (float) (CAMERA_HEIGHT / 2.0 - 50),
+				mCardTiledTextureRegion1, this.getVertexBufferObjectManager()) {
 			@Override
 			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
 					float pTouchAreaLocalX, float pTouchAreaLocalY) {
@@ -185,7 +181,6 @@ public class GameActivity extends SimpleBaseGameActivity implements
 					try {
 						object.put("turn", "over");
 					} catch (JSONException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 					theClient.sendChat(object.toString());
@@ -251,7 +246,6 @@ public class GameActivity extends SimpleBaseGameActivity implements
 						clickCount = 0;
 						startTime = System.currentTimeMillis();
 					}
-				
 
 					selectedCardId = id;
 					selectedFromField = false;
@@ -277,7 +271,8 @@ public class GameActivity extends SimpleBaseGameActivity implements
 				this.getTextureManager(), 128, 128);
 
 		mCardTiledTextureRegion1 = BitmapTextureAtlasTextureRegionFactory
-				.createTiledFromAsset(cardBitmapTextureAtlas1, this, Cards.getName(id, !secondPlayer) + ".png", 0, 0, 1, 1);
+				.createTiledFromAsset(cardBitmapTextureAtlas1, this,
+						Cards.getName(id, !secondPlayer) + ".png", 0, 0, 1, 1);
 
 		cardBitmapTextureAtlas1.load();
 		this.textures.put(textureCount, cardBitmapTextureAtlas1);
@@ -289,8 +284,8 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			@Override
 			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
 					float pTouchAreaLocalX, float pTouchAreaLocalY) {
-				if(pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP){
-					
+				if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP) {
+
 					clickCount++;
 
 					if (clickCount == 1) {
@@ -304,14 +299,20 @@ public class GameActivity extends SimpleBaseGameActivity implements
 						clickCount = 0;
 						startTime = System.currentTimeMillis();
 					}
-					
-				runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						Utils.showToastAlert(GameActivity.this,
-								Cards.getName(id, !secondPlayer) +" - "+ "attack: " + Cards.getAttack(id, !secondPlayer) + ". health: " + Cards.getHealth(id, !secondPlayer));
-					}
-				});
+
+					runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							Utils.showToastAlert(
+									GameActivity.this,
+									Cards.getName(id, !secondPlayer)
+											+ " - "
+											+ "attack: "
+											+ Cards.getAttack(id, !secondPlayer)
+											+ ". health: "
+											+ Cards.getHealth(id, !secondPlayer));
+						}
+					});
 
 				}
 				return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX,
@@ -329,7 +330,8 @@ public class GameActivity extends SimpleBaseGameActivity implements
 				this.getTextureManager(), 128, 128);
 
 		mCardTiledTextureRegion1 = BitmapTextureAtlasTextureRegionFactory
-				.createTiledFromAsset(cardBitmapTextureAtlas1, this, Cards.getName(id, secondPlayer) + ".png", 0, 0, 1, 1);
+				.createTiledFromAsset(cardBitmapTextureAtlas1, this,
+						Cards.getName(id, secondPlayer) + ".png", 0, 0, 1, 1);
 
 		cardBitmapTextureAtlas1.load();
 		this.textures.put(textureCount, cardBitmapTextureAtlas1);
@@ -340,24 +342,29 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			@Override
 			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
 					float pTouchAreaLocalX, float pTouchAreaLocalY) {
-				 if(pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP){
-				runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						Utils.showToastAlert(GameActivity.this,
-								Cards.getName(id, secondPlayer) +" - "+ "attack: " + Cards.getAttack(id, secondPlayer) + ". health: " + Cards.getHealth(id, secondPlayer));
+				if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP) {
+					runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							Utils.showToastAlert(
+									GameActivity.this,
+									Cards.getName(id, secondPlayer) + " - "
+											+ "attack: "
+											+ Cards.getAttack(id, secondPlayer)
+											+ ". health: "
+											+ Cards.getHealth(id, secondPlayer));
+						}
+					});
+
+					selectedCardId = id;
+					selectedFromField = true;
+					if (selectedCard != null) {
+						selectedCard.setSize(50, 50);
 					}
-				});
-				 
-				selectedCardId = id;
-				selectedFromField = true;
-				if (selectedCard != null) {
-					selectedCard.setSize(50, 50);
+					this.setSize(65, 65);
+					selectedCard = this;
+					selectedCardIdEnemy = -1;
 				}
-				this.setSize(65, 65);
-				selectedCard = this;
-				selectedCardIdEnemy = -1;
-				 }
 				return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX,
 						pTouchAreaLocalY);
 			}
@@ -438,9 +445,9 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			if (secondPlayer)
 				this.mMainScene.registerTouchArea(card4p2);
 			this.mMainScene.attachChild(card4p2);
-			
+
 			endTurnSprite();
-			
+
 			initialize = true;
 		}
 	}
@@ -453,13 +460,14 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			theClient.subscribeRoom(roomId);
 			theClient.getLiveRoomInfo(roomId);
 		}
-		
+
 	}
 
 	private int pickCardId() {
 		int id;
 		while (usedCards[id = (int) Math.floor(Math.random()
-				* Cards.cardsp1.length)] == true || id == 0)
+				* Cards.cardsp1.length)] == true
+				|| id == 0)
 			;
 		usedCards[id] = true;
 		return id;
@@ -582,8 +590,8 @@ public class GameActivity extends SimpleBaseGameActivity implements
 
 	private void checkForCardMove(float x, float y) {
 		if (selectedCardIdEnemy != -1 && selectedFromField) {
-			placeObject(selectedCardId, selectedCardIdEnemy,
-					getPosition(x, y), null, true);
+			placeObject(selectedCardId, selectedCardIdEnemy, getPosition(x, y),
+					null, true);
 		} else if (selectedCardId != -1 && !selectedFromField) {
 			placeObject(selectedCardId, -1, getPosition(x, y), null, true);
 		}
@@ -599,30 +607,34 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		}
 		boolean destroy = false;
 		int health;
-		
+
 		// you attack opponent
-		if (updateProperty){
+		if (updateProperty) {
 			health = Cards.getHealth(selectedObjectIdEnemy, !secondPlayer);
-			Cards.setHealth(selectedObjectIdEnemy, health - Cards.getAttack(selectedObject, secondPlayer), !secondPlayer);
-			if (Cards.getHealth(selectedObjectIdEnemy, !secondPlayer) <= 0){
+			Cards.setHealth(selectedObjectIdEnemy,
+					health - Cards.getAttack(selectedObject, secondPlayer),
+					!secondPlayer);
+			if (Cards.getHealth(selectedObjectIdEnemy, !secondPlayer) <= 0) {
 				destroy = true;
 			}
-		// you get attacked by opponent
+			// you get attacked by opponent
 		} else {
 			health = Cards.getHealth(selectedObjectIdEnemy, secondPlayer);
-			Cards.setHealth(selectedObjectIdEnemy, health - Cards.getAttack(selectedObject, !secondPlayer), secondPlayer);
-			if (Cards.getHealth(selectedObjectIdEnemy, secondPlayer) <= 0){
+			Cards.setHealth(selectedObjectIdEnemy,
+					health - Cards.getAttack(selectedObject, !secondPlayer),
+					secondPlayer);
+			if (Cards.getHealth(selectedObjectIdEnemy, secondPlayer) <= 0) {
 				destroy = true;
 			}
 		}
-		if (destroy){
-		final EngineLock engineLock = this.mEngine.getEngineLock();
-		engineLock.lock();
-		this.mMainScene.detachChild(objectSprite);
-		this.mMainScene.unregisterTouchArea(objectSprite);
-		objectSprite = null;
-		objectMap.remove(destination);
-		engineLock.unlock();
+		if (destroy) {
+			final EngineLock engineLock = this.mEngine.getEngineLock();
+			engineLock.lock();
+			this.mMainScene.detachChild(objectSprite);
+			this.mMainScene.unregisterTouchArea(objectSprite);
+			objectSprite = null;
+			objectMap.remove(destination);
+			engineLock.unlock();
 		}
 		if (updateProperty) {
 			selectedCardIdEnemy = -1;
@@ -680,11 +692,13 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		} else {
 			return;
 		}
-		
-		if (destination.charAt(destination.length()-2) == 'p'){
-			if (!secondPlayer && updateProperty) return;
+
+		if (destination.charAt(destination.length() - 2) == 'p') {
+			if (!secondPlayer && updateProperty)
+				return;
 		} else {
-			if (secondPlayer && updateProperty) return;
+			if (secondPlayer && updateProperty)
+				return;
 		}
 
 		if (objectMap.get(destination) != null) {
@@ -844,18 +858,18 @@ public class GameActivity extends SimpleBaseGameActivity implements
 
 	public void clearResources() {
 		if (mBitmapTextureAtlas1 != null)
-		this.mBitmapTextureAtlas1.unload();
+			this.mBitmapTextureAtlas1.unload();
 		if (mBitmapTextureAtlas2 != null)
-		this.mBitmapTextureAtlas2.unload();
+			this.mBitmapTextureAtlas2.unload();
 		if (mBitmapTextureAtlas3 != null)
-		this.mBitmapTextureAtlas3.unload();
+			this.mBitmapTextureAtlas3.unload();
 		if (mBitmapTextureAtlas4 != null)
-		this.mBitmapTextureAtlas4.unload();
+			this.mBitmapTextureAtlas4.unload();
 		for (Map.Entry<Integer, BitmapTextureAtlas> e : textures.entrySet()) {
 			this.mEngine.getTextureManager().unloadTexture(e.getValue());
 			e.getValue().unload();
 		}
-		if (mMainScene != null){
+		if (mMainScene != null) {
 			this.mMainScene.dispose();
 			mMainScene = null;
 		}
