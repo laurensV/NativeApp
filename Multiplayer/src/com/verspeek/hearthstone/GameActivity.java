@@ -2,6 +2,7 @@ package com.verspeek.hearthstone;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 
@@ -15,16 +16,22 @@ import org.andengine.entity.scene.IOnSceneTouchListener;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.scene.background.RepeatingSpriteBackground;
 import org.andengine.entity.sprite.Sprite;
+import org.andengine.entity.text.Text;
+import org.andengine.entity.text.TextOptions;
 import org.andengine.input.touch.TouchEvent;
+import org.andengine.opengl.font.Font;
+import org.andengine.opengl.font.FontFactory;
 import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas;
 import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegionFactory;
 import org.andengine.opengl.texture.atlas.bitmap.source.AssetBitmapTextureAtlasSource;
 import org.andengine.opengl.texture.region.TiledTextureRegion;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
+import org.andengine.util.HorizontalAlign;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
@@ -48,6 +55,8 @@ public class GameActivity extends SimpleBaseGameActivity implements
 	private TiledTextureRegion mPlayerTiledTextureRegion2;
 	private TiledTextureRegion mPlayerTiledTextureRegion3;
 	private TiledTextureRegion mPlayerTiledTextureRegion4;
+	
+	private Font mFont;
 
 	private RepeatingSpriteBackground mGrassBackground;
 
@@ -59,19 +68,22 @@ public class GameActivity extends SimpleBaseGameActivity implements
 
 	private Map<Integer, BitmapTextureAtlas> textures = new HashMap<Integer, BitmapTextureAtlas>();
 
-	private HashMap<String, Sprite> objectMap = new HashMap<String, Sprite>();
+	private HashMap<String, CardSprite> objectMap = new HashMap<String, CardSprite>();
 
 	private String roomId = "";
 
-	private Sprite card1, card2, card3, card4, selectedCard;
-	private Sprite card1p2, card2p2, card3p2, card4p2;
+	private CardSprite card1, card2, card3, card4, selectedCard;
+	private CardSprite card1p2, card2p2, card3p2, card4p2;
 
 	private int selectedCardId = -1;
 
-	private Sprite card1Field, card2Field, card3Field, card4Field;
-	private Sprite card1p2Field, card2p2Field, card3p2Field, card4p2Field;
+	private CardSprite card1Field, card2Field, card3Field, card4Field;
+	private CardSprite card1p2Field, card2p2Field, card3p2Field, card4p2Field;
 
 	private int textureCount = 0;
+	
+	private int healthp2 = 100;
+	private int healthp1 = 100;
 
 	private int selectedCardIdEnemy = -1;
 
@@ -137,6 +149,9 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		this.mPlayerTiledTextureRegion4 = BitmapTextureAtlasTextureRegionFactory
 				.createTiledFromAsset(this.mBitmapTextureAtlas4, this,
 						"monster4.png", 0, 0, 1, 1);
+		
+		this.mFont = FontFactory.create(this.getFontManager(), this.getTextureManager(), 256, 256, Typeface.create(Typeface.DEFAULT, Typeface.BOLD), 32);
+		this.mFont.load();
 
 		usedCards = new boolean[Cards.cardsp1.length + 1];
 		Arrays.fill(usedCards, false);
@@ -180,11 +195,13 @@ public class GameActivity extends SimpleBaseGameActivity implements
 					JSONObject object = new JSONObject();
 					try {
 						object.put("turn", "over");
+						theClient.sendChat(object.toString());
 					} catch (JSONException e) {
 						e.printStackTrace();
 					}
-					theClient.sendChat(object.toString());
-					myTurn = false;
+
+					
+					endTurn();
 				}
 				return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX,
 						pTouchAreaLocalY);
@@ -195,8 +212,41 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		this.mMainScene.registerTouchArea(sprite);
 		this.mMainScene.attachChild(sprite);
 	}
+	
+	public void startTurn(){
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				Utils.showToastAlert(
+						GameActivity.this,
+						"Its your turn");
+			}
+		});
+		myTurn = true;
+	}
+	
+	private void endTurn(){
+		float x,y;
+		x = 10;
+		if (secondPlayer){
+			y = 10;
+		} else {
+			y = CAMERA_HEIGHT - 60;
+		}
+		sendUpdateEvent(x, y);
+		updateMove(false, Utils.userName, x, y);
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				Utils.showToastAlert(
+						GameActivity.this,
+						"Opponent's turn");
+			}
+		});
+		myTurn = false;
+	}
 
-	private Sprite newSprite(final int id, float x, float y) {
+	private CardSprite newSprite(final int id, float x, float y) {
 		BitmapTextureAtlas cardBitmapTextureAtlas1;
 		TiledTextureRegion mCardTiledTextureRegion1;
 
@@ -210,6 +260,58 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		cardBitmapTextureAtlas1.load();
 		this.textures.put(textureCount, cardBitmapTextureAtlas1);
 		textureCount++;
+		
+		CardSprite playButton = new CardSprite(mCardTiledTextureRegion1, mFont, "a:"+Cards.getAttack(id, secondPlayer)+"", "h:"+Cards.getHealth(id, secondPlayer), this.getVertexBufferObjectManager()){
+			@Override
+			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
+					float pTouchAreaLocalX, float pTouchAreaLocalY) {
+				if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP) {
+					clickCount++;
+
+					if (clickCount == 1) {
+						startTime = System.currentTimeMillis();
+					} else if (clickCount == 2) {
+						if (System.currentTimeMillis() - startTime <= 400) {
+							if (id != 0) {
+								runOnUiThread(new Runnable() {
+									@Override
+									public void run() {
+										Utils.showToastAlert(
+												GameActivity.this,
+												Cards.getName(id, secondPlayer)
+														+ " - "
+														+ "attack: "
+														+ Cards.getAttack(id,
+																secondPlayer)
+														+ ". health: "
+														+ Cards.getHealth(id,
+																secondPlayer));
+									}
+								});
+							}
+							clickCount = 0;
+						}
+					} else {
+						clickCount = 0;
+						startTime = System.currentTimeMillis();
+					}
+
+					selectedCardId = id;
+					selectedFromField = false;
+					if (selectedCard != null) {
+						selectedCard.setSize(50, 50);
+					}
+					this.setSize(65, 65);
+					selectedCard = this;
+					selectedCardIdEnemy = -1;
+				}
+				return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX,
+						pTouchAreaLocalY);
+
+			}
+		};
+		playButton.setPosition(x, y);
+		return playButton;/*
 
 		return new Sprite(x, y, mCardTiledTextureRegion1,
 				this.getVertexBufferObjectManager()) {
@@ -260,10 +362,10 @@ public class GameActivity extends SimpleBaseGameActivity implements
 						pTouchAreaLocalY);
 
 			}
-		};
+		};*/
 	}
 
-	private Sprite newSpriteOtherField(final int id, float x, float y) {
+	private CardSprite newSpriteOtherField(final int id, float x, float y) {
 		BitmapTextureAtlas cardBitmapTextureAtlas1;
 		TiledTextureRegion mCardTiledTextureRegion1;
 
@@ -277,29 +379,13 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		cardBitmapTextureAtlas1.load();
 		this.textures.put(textureCount, cardBitmapTextureAtlas1);
 		textureCount++;
-
-		cardBitmapTextureAtlas1.load();
-		return new Sprite(x, y, mCardTiledTextureRegion1,
-				this.getVertexBufferObjectManager()) {
+		
+		CardSprite playButton = new CardSprite(mCardTiledTextureRegion1, mFont, "a:"+Cards.getAttack(id, secondPlayer)+"", "h:"+Cards.getHealth(id, secondPlayer), this.getVertexBufferObjectManager()){
 			@Override
 			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
 					float pTouchAreaLocalX, float pTouchAreaLocalY) {
 				if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP) {
-
-					clickCount++;
-
-					if (clickCount == 1) {
-						startTime = System.currentTimeMillis();
-					} else if (clickCount == 2) {
-						if (System.currentTimeMillis() - startTime <= 400) {
-							selectedCardIdEnemy = id;
-							clickCount = 0;
-						}
-					} else {
-						clickCount = 0;
-						startTime = System.currentTimeMillis();
-					}
-
+					selectedCardIdEnemy = id;
 					runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
@@ -319,10 +405,12 @@ public class GameActivity extends SimpleBaseGameActivity implements
 						pTouchAreaLocalY);
 			}
 		};
+		playButton.setPosition(x, y);
+		return playButton;
 
 	}
 
-	private Sprite newSpriteOwnField(final int id, float x, float y) {
+	private CardSprite newSpriteOwnField(final int id, float x, float y) {
 		BitmapTextureAtlas cardBitmapTextureAtlas1;
 		TiledTextureRegion mCardTiledTextureRegion1;
 
@@ -336,9 +424,8 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		cardBitmapTextureAtlas1.load();
 		this.textures.put(textureCount, cardBitmapTextureAtlas1);
 		textureCount++;
-
-		return new Sprite(x, y, mCardTiledTextureRegion1,
-				this.getVertexBufferObjectManager()) {
+		
+		CardSprite playButton = new CardSprite(mCardTiledTextureRegion1, mFont, "a:"+Cards.getAttack(id, secondPlayer)+"", "h:"+Cards.getHealth(id, secondPlayer), this.getVertexBufferObjectManager()){
 			@Override
 			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
 					float pTouchAreaLocalX, float pTouchAreaLocalY) {
@@ -369,6 +456,8 @@ public class GameActivity extends SimpleBaseGameActivity implements
 						pTouchAreaLocalY);
 			}
 		};
+		playButton.setPosition(x, y);
+		return playButton;
 	}
 
 	@Override
@@ -386,9 +475,9 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			if (!secondPlayer)
 				id = card1Id;
 			// Adding card here
-			card1 = newSprite(id, CAMERA_WIDTH / 2 - 50 * 2,
-					CAMERA_HEIGHT - 100);
-			card1.setSize(50, 50);
+			card1 = newSprite(id, CAMERA_WIDTH / 2 - 100 * 2,
+					CAMERA_HEIGHT - 300);
+			card1.setSize(150, 250);
 			if (!secondPlayer)
 				this.mMainScene.registerTouchArea(card1);
 			this.mMainScene.attachChild(card1);
@@ -413,14 +502,25 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			if (!secondPlayer)
 				this.mMainScene.registerTouchArea(card4);
 			this.mMainScene.attachChild(card4);
+			
+			
+			final Text healthTextp1 = new Text(60, CAMERA_HEIGHT-50, this.mFont, "health: " + healthp1, new TextOptions(HorizontalAlign.LEFT), this.getVertexBufferObjectManager());
+			this.mMainScene.attachChild(healthTextp1);
+			
 
-			id = 0;
+
+
+
+
 
 			// Adding card here for player 2
+			id = 0;
 			if (secondPlayer)
 				id = card1Id;
 			card1p2 = newSprite(id, CAMERA_WIDTH / 2 - 50 * 2, 0 + 100);
 			card1p2.setSize(50, 50);
+			
+			
 			if (secondPlayer)
 				this.mMainScene.registerTouchArea(card1p2);
 			this.mMainScene.attachChild(card1p2);
@@ -445,6 +545,9 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			if (secondPlayer)
 				this.mMainScene.registerTouchArea(card4p2);
 			this.mMainScene.attachChild(card4p2);
+			
+			final Text healthTextp2 = new Text(60, 10, this.mFont, "health: " + healthp2, new TextOptions(HorizontalAlign.LEFT), this.getVertexBufferObjectManager());
+			this.mMainScene.attachChild(healthTextp2);
 
 			endTurnSprite();
 
@@ -454,11 +557,16 @@ public class GameActivity extends SimpleBaseGameActivity implements
 
 	private void init(String roomId) {
 		if (theClient != null) {
-			theClient.addRoomRequestListener(eventHandler);
-			theClient.addNotificationListener(eventHandler);
-			Log.d(this.getClass().toString(), "Room Id is: " + roomId);
-			theClient.subscribeRoom(roomId);
-			theClient.getLiveRoomInfo(roomId);
+			try {
+				theClient = WarpClient.getInstance();
+				theClient.addRoomRequestListener(eventHandler);
+				theClient.addNotificationListener(eventHandler);
+				Log.d(this.getClass().toString(), "Room Id is: " + roomId);
+				theClient.subscribeRoom(roomId);
+				theClient.getLiveRoomInfo(roomId);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 
 	}
@@ -477,6 +585,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			boolean secondPlayer) {
 		// if already in room
 		if (userMap.get(userName) != null) {
+			if (secondPlayer) startTurn();
 			return;
 		}
 
@@ -492,8 +601,16 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		} else if (index == '4') {
 			tiledTextureRegion = mPlayerTiledTextureRegion4;
 		}
-		final Sprite face = new Sprite(ramdom.nextInt(CAMERA_WIDTH),
-				ramdom.nextInt(CAMERA_HEIGHT), tiledTextureRegion,
+		int height;
+		if (isMine)
+			if (secondPlayer)
+				height = 10;
+			else
+				height = CAMERA_HEIGHT - 60;
+		else
+		if (secondPlayer) height = 10;
+		else height = CAMERA_HEIGHT - 60;
+		final Sprite face = new Sprite(10, height, tiledTextureRegion,
 				this.getVertexBufferObjectManager());
 		face.setScale(1.5f);
 		this.mMainScene.attachChild(face);
@@ -502,7 +619,6 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		if (isMine) {
 			if (secondPlayer) {
 				this.secondPlayer = true;
-				this.myTurn = false;
 			}
 			initObjects();
 			this.mMainScene.setOnSceneTouchListener(this);
@@ -589,6 +705,8 @@ public class GameActivity extends SimpleBaseGameActivity implements
 	}
 
 	private void checkForCardMove(float x, float y) {
+		Log.d("CHECKCARDMOVE", "" + selectedCardId
+				+ "/" + selectedCardIdEnemy + selectedFromField);
 		if (selectedCardIdEnemy != -1 && selectedFromField) {
 			placeObject(selectedCardId, selectedCardIdEnemy, getPosition(x, y),
 					null, true);
@@ -600,7 +718,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 	public synchronized void playObject(final int selectedObject,
 			final int selectedObjectIdEnemy, final String destination,
 			final String userName, boolean updateProperty) {
-		Sprite objectSprite = null;
+		CardSprite objectSprite = null;
 
 		if (objectMap.get(destination) != null) {
 			objectSprite = objectMap.get(destination);
@@ -614,6 +732,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			Cards.setHealth(selectedObjectIdEnemy,
 					health - Cards.getAttack(selectedObject, secondPlayer),
 					!secondPlayer);
+			objectSprite.ChangeText("a:"+Cards.getAttack(selectedObjectIdEnemy, !secondPlayer), "h:"+Cards.getHealth(selectedObjectIdEnemy, !secondPlayer));
 			if (Cards.getHealth(selectedObjectIdEnemy, !secondPlayer) <= 0) {
 				destroy = true;
 			}
@@ -623,6 +742,8 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			Cards.setHealth(selectedObjectIdEnemy,
 					health - Cards.getAttack(selectedObject, !secondPlayer),
 					secondPlayer);
+			objectSprite.ChangeText("a:"+Cards.getAttack(selectedObjectIdEnemy, secondPlayer), "h:"+Cards.getHealth(selectedObjectIdEnemy, secondPlayer));
+
 			if (Cards.getHealth(selectedObjectIdEnemy, secondPlayer) <= 0) {
 				destroy = true;
 			}
@@ -654,7 +775,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 	public synchronized void placeObject(final int selectedObjectId,
 			final int selectedObjectIdEnemy, final String destination,
 			final String userName, boolean updateProperty) {
-		Log.d("selectedObjectId/selectedCardIdEnemy", "" + selectedObjectId
+		Log.d("PLACEOBJECT", "" + selectedObjectId
 				+ "/" + selectedObjectIdEnemy + selectedFromField);
 
 		if (selectedObjectIdEnemy != -1
@@ -714,7 +835,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 
 		// create new sprite with new ontouch options
 		boolean p2 = false;
-		Sprite sprite = null;
+		CardSprite sprite = null;
 		if (secondPlayer) {
 			if (!updateProperty) { // handle move of other user
 				sprite = newSpriteOtherField(selectedObjectId,
@@ -821,30 +942,23 @@ public class GameActivity extends SimpleBaseGameActivity implements
 
 	@Override
 	public void onBackPressed() {
-		if (theClient != null) {
-			handleLeave(Utils.userName);
-			theClient.leaveRoom(roomId);
-			theClient.unsubscribeRoom(roomId);
-			theClient.removeRoomRequestListener(eventHandler);
-			theClient.removeNotificationListener(eventHandler);
-		}
-		clearResources();
 		super.onBackPressed();
-	}
+		if (theClient != null) {
+			handleLeave(Utils.userName);
+			theClient.leaveRoom(roomId);
+			theClient.unsubscribeRoom(roomId);
+			theClient.removeRoomRequestListener(eventHandler);
+			theClient.removeNotificationListener(eventHandler);
+		}
+		clearResources();
 
+	}
+	
+
+	
+	@Override
 	protected void onStop() {
-		if (theClient != null) {
-			handleLeave(Utils.userName);
-			theClient.leaveRoom(roomId);
-			theClient.unsubscribeRoom(roomId);
-			theClient.removeRoomRequestListener(eventHandler);
-			theClient.removeNotificationListener(eventHandler);
-		}
-		clearResources();
 		super.onStop();
-	}
-
-	protected void onDestroy() {
 		if (theClient != null) {
 			handleLeave(Utils.userName);
 			theClient.leaveRoom(roomId);
@@ -853,7 +967,22 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			theClient.removeNotificationListener(eventHandler);
 		}
 		clearResources();
+		
+
+	}
+	
+	@Override
+	protected void onDestroy() {
 		super.onDestroy();
+		if (theClient != null) {
+			handleLeave(Utils.userName);
+			theClient.leaveRoom(roomId);
+			theClient.unsubscribeRoom(roomId);
+			theClient.removeRoomRequestListener(eventHandler);
+			theClient.removeNotificationListener(eventHandler);
+		}
+		clearResources();
+
 	}
 
 	public void clearResources() {
@@ -865,10 +994,14 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			this.mBitmapTextureAtlas3.unload();
 		if (mBitmapTextureAtlas4 != null)
 			this.mBitmapTextureAtlas4.unload();
-		for (Map.Entry<Integer, BitmapTextureAtlas> e : textures.entrySet()) {
-			this.mEngine.getTextureManager().unloadTexture(e.getValue());
-			e.getValue().unload();
-		}
+
+        Iterator<Map.Entry<Integer, BitmapTextureAtlas>> entries =
+                textures.entrySet().iterator();
+            while (entries.hasNext()) {
+                Map.Entry<Integer, BitmapTextureAtlas> entry = entries.next();
+    			if (entry.getValue() != null)
+    				entry.getValue().unload();
+            }
 		if (mMainScene != null) {
 			this.mMainScene.dispose();
 			mMainScene = null;
