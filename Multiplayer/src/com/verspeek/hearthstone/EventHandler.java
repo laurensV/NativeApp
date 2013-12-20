@@ -33,6 +33,8 @@ public class EventHandler implements RoomRequestListener, NotifyListener {
 				JSONObject object = new JSONObject(message);
 				if (object.has("turn")) {
 					gameScreen.startTurn();
+				} else if (object.has("drawCard")) {
+					gameScreen.drawCard(object.getString("drawCard"), false);
 				} else {
 					float xCord = Float.parseFloat(object.getString("X"));
 					float yCord = Float.parseFloat(object.getString("Y"));

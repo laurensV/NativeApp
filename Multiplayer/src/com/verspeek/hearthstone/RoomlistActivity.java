@@ -50,9 +50,10 @@ public class RoomlistActivity extends Activity implements ZoneRequestListener, R
 		super.onStart();
 		listView = (ListView)findViewById(R.id.roomList);
 		roomlistAdapter = new RoomlistAdapter(this);
-		if (theClient == null) init();		
+		if (theClient != null){		
 		theClient.addZoneRequestListener(this);
 		theClient.getRoomInRange(1, 1);// trying to get room with at min and max 1 user
+		}
 	}
 	
 	public void onStop(){
@@ -176,6 +177,7 @@ public class RoomlistActivity extends Activity implements ZoneRequestListener, R
 		Intent intent = new Intent(RoomlistActivity.this, GameActivity.class);
 		intent.putExtra("roomId", roomId);
 		startActivity(intent);
+		finish();
 	}
 	
 	@Override

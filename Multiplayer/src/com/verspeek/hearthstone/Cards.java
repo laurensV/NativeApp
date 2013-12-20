@@ -8,19 +8,19 @@ public class Cards {
 	public static void initCards(){
 		cardsp1 = new String[][] {
 				  //{name, attack, health}
-					{"card0", "0", "0"},
+					{"banana", "0", "0"},
 					{"banana", "2", "3"},
-					{"grape", "5", "6"},
-					{"pineapple", "1", "2"},
-					{"strawberry", "8", "9"}
+					{"banana", "5", "6"},
+					{"banana", "1", "2"},
+					{"banana", "8", "9"}
 			};
 		cardsp2 = new String[][] {
 				  //{name, attack, health}
-					{"card0", "0", "0"},
+					{"banana", "0", "0"},
 					{"banana", "2", "3"},
-					{"grape", "5", "6"},
-					{"pineapple", "1", "2"},
-					{"strawberry", "8", "9"}
+					{"banana", "5", "6"},
+					{"banana", "1", "2"},
+					{"banana", "8", "9"}
 			};
 	}
 	

@@ -13,14 +13,17 @@ public class CardSprite extends Sprite {
 	private Text textAttack;
 	private Text textHealth;
 
-	public CardSprite(TiledTextureRegion pTextureRegion, Font pFont, String pTextAttack, String pTextHealth, VertexBufferObjectManager vb) {
+	public CardSprite(TiledTextureRegion pTextureRegion, Font pFont, VertexBufferObjectManager vb) {
 		super(0, 0, pTextureRegion, vb);
-		textAttack = new Text(0, 0, pFont, pTextAttack, new TextOptions(HorizontalAlign.LEFT), vb);
-		textAttack.setPosition((this.getX() + this.getWidth() - textAttack.getWidth()), (this.getY() + this.getHeight() - textAttack.getHeight()));
-		textAttack.setColor(1, 0, 0);
+		textAttack = new Text(0, 0, pFont, "a:--", new TextOptions(HorizontalAlign.LEFT), vb);
+
+		textAttack.setPosition(0+5, this.getY() + this.getHeight() - textAttack.getHeight());
+		textAttack.setColor(255, 0, 0);
 		this.attachChild(textAttack);
-		textHealth = new Text(0, 0, pFont, pTextHealth, new TextOptions(HorizontalAlign.RIGHT), vb);
-		textHealth.setPosition(0, (this.getY() + this.getHeight() - textHealth.getHeight()));		textHealth.setColor(0, 1, 0);
+		textHealth = new Text(0, 0, pFont, "h:--" , new TextOptions(HorizontalAlign.RIGHT), vb);
+
+		textHealth.setPosition(this.getX() + this.getWidth() - textAttack.getWidth()-2, this.getY() + this.getHeight() - textHealth.getHeight());		
+		textHealth.setColor(0, 255, 0);
 		this.attachChild(textHealth);
 	}
 	

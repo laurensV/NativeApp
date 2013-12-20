@@ -98,6 +98,7 @@ public class MainActivity extends Activity implements ConnectionRequestListener 
 			isConnected = true;
 			Intent intent = new Intent(MainActivity.this, RoomlistActivity.class);
 			startActivity(intent);
+			finish();
 		}else{
 			Utils.showToastOnUIThread(MainActivity.this, "connection failed");
 		}
