@@ -7,20 +7,26 @@ public class Cards {
 	
 	public static void initCards(){
 		cardsp1 = new String[][] {
-				  //{name, attack, health}
-					{"banana", "0", "0"},
-					{"banana", "2", "3"},
-					{"banana", "5", "6"},
-					{"banana", "1", "2"},
-					{"banana", "8", "9"}
+				  //{name, attack, health, mana}
+					{"back", "0", "0", "0"},
+					{"hogger", "4", "5", "5"},
+					{"hogger", "5", "6", "1"},
+					{"hogger", "1", "2", "2"},
+					{"hogger", "8", "9", "4"},
+					{"hogger", "8", "9", "3"},
+					{"hogger", "8", "9", "1"},
+					{"hogger", "8", "9", "2"}
 			};
 		cardsp2 = new String[][] {
-				  //{name, attack, health}
-					{"banana", "0", "0"},
-					{"banana", "2", "3"},
-					{"banana", "5", "6"},
-					{"banana", "1", "2"},
-					{"banana", "8", "9"}
+				  //{name, attack, health, mana}
+					{"back", "0", "0", "0"},
+					{"hogger", "4", "5", "5"},
+					{"hogger", "5", "6", "1"},
+					{"hogger", "1", "2", "2"},
+					{"hogger", "8", "9", "4"},
+					{"hogger", "8", "9", "3"},
+					{"hogger", "8", "9", "1"},
+					{"hogger", "8", "9", "2"}
 			};
 	}
 	
@@ -43,6 +49,12 @@ public class Cards {
 		else
 			return Integer.parseInt(cardsp1[id][2]);
 	}
+	public static int getMana(int id, boolean secondPlayer){
+		if (secondPlayer) 
+			return Integer.parseInt(cardsp2[id][3]);
+		else
+			return Integer.parseInt(cardsp1[id][3]);
+	}
 	
 	public static void setAttack(int id, int attack, boolean secondPlayer){
 		if (secondPlayer) 
@@ -55,6 +67,12 @@ public class Cards {
 			cardsp2[id][2] = ""+ health;
 		else
 			cardsp1[id][2] = ""+ health;
+	}
+	public static void setMana(int id, int mana, boolean secondPlayer){
+		if (secondPlayer) 
+			cardsp2[id][3] = ""+ mana;
+		else
+			cardsp1[id][3] = ""+ mana;
 	}
 
 }

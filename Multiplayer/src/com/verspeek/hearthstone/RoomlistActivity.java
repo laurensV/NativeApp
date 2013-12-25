@@ -29,6 +29,7 @@ public class RoomlistActivity extends Activity implements ZoneRequestListener, R
 	private RoomlistAdapter roomlistAdapter;
 	private ListView listView;
 	private ProgressDialog progressDialog;
+	private boolean secondPlayer = false;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +69,8 @@ public class RoomlistActivity extends Activity implements ZoneRequestListener, R
 		theClient.disconnect();
 	}
 	
-	public void joinRoom(String roomId){
+	public void joinRoom(String roomId, boolean secondPlayer){
+		if (secondPlayer) this.secondPlayer = true;
 		if(roomId!=null && roomId.length()>0){
 			theClient.joinRoom(roomId);
 			theClient.addRoomRequestListener(this);
@@ -105,7 +107,7 @@ public class RoomlistActivity extends Activity implements ZoneRequestListener, R
 				if(event.getResult()==WarpResponseResultCode.SUCCESS){// if room created successfully
 					String roomId = event.getData().getId();
 					Log.d("roomId", event.getResult()+"onCreateRoomDone"+roomId);
-					joinRoom(roomId);
+					joinRoom(roomId, false);
 				}else{
 					progressDialog.dismiss();
 					Utils.showToastAlert(RoomlistActivity.this, "Game creation failed...");
@@ -176,8 +178,9 @@ public class RoomlistActivity extends Activity implements ZoneRequestListener, R
 	private void goToGameScreen(String roomId){
 		Intent intent = new Intent(RoomlistActivity.this, GameActivity.class);
 		intent.putExtra("roomId", roomId);
+		intent.putExtra("secondPlayer", ""+secondPlayer);
+		secondPlayer = false;
 		startActivity(intent);
-		finish();
 	}
 	
 	@Override

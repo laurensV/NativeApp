@@ -33,6 +33,8 @@ public class EventHandler implements RoomRequestListener, NotifyListener {
 				JSONObject object = new JSONObject(message);
 				if (object.has("turn")) {
 					gameScreen.startTurn();
+				} else if(object.has("attackCharacter")){
+					gameScreen.attackCharacter(Integer.parseInt(object.getString("attackCharacter")), false);
 				} else if (object.has("drawCard")) {
 					gameScreen.drawCard(object.getString("drawCard"), false);
 				} else {
@@ -84,17 +86,20 @@ public class EventHandler implements RoomRequestListener, NotifyListener {
 			if (entry.getValue().toString().length() > 0) {
 				if (!this.properties.get(entry.getKey()).toString()
 						.equals(entry.getValue())) {
-					int fruitId;
+					int fruitId, pos = 0;
 					if (entry.getValue().toString().contains("/")) {
 						String[] parts = entry.getValue().toString().split("/");
 						fruitId = Integer.parseInt(parts[0]);
 						selectedObjectIdEnemy = Integer.parseInt(parts[1]);
+						pos = Integer.parseInt(parts[2]);
 					} else {
-						fruitId = Integer.parseInt(entry.getValue().toString());
+						String[] parts = entry.getValue().toString().split(":");
+						fruitId = Integer.parseInt(parts[0]);
+						pos = Integer.parseInt(parts[1]);
 					}
 					properties.put(entry.getKey(), entry.getValue());
 					gameScreen.placeObject(fruitId, selectedObjectIdEnemy,
-							entry.getKey(), userName, false);
+							entry.getKey(), userName, false, pos);
 				}
 			}
 
@@ -143,16 +148,18 @@ public class EventHandler implements RoomRequestListener, NotifyListener {
 		int selectedObjectIdEnemy = -1;
 		for (Map.Entry<String, Object> entry : properties.entrySet()) {
 			if (entry.getValue().toString().length() > 0) {
-				int fruitId;
+				int fruitId, pos = 0;
 				if (entry.getValue().toString().contains("/")) {
 					String[] parts = entry.getValue().toString().split("/");
 					fruitId = Integer.parseInt(parts[0]);
 					selectedObjectIdEnemy = Integer.parseInt(parts[1]);
 				} else {
-					fruitId = Integer.parseInt(entry.getValue().toString());
+					String[] parts = entry.getValue().toString().split(":");
+					fruitId = Integer.parseInt(parts[0]);
+					pos = Integer.parseInt(parts[1]);
 				}
 				gameScreen.placeObject(fruitId, selectedObjectIdEnemy,
-						entry.getKey(), null, false);
+						entry.getKey(), null, false, pos);
 			}
 		}
 	}

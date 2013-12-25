@@ -52,4 +52,18 @@ public class Utils {
 		});
 	}
 	
+	public static boolean allElementsTheSame(boolean[] array) {
+	    if (array.length == 0) {
+	        return true;
+	    } else {
+	        boolean first = array[0];
+	        for (boolean element : array) {
+	            if (element != first) {
+	                return false;
+	            }
+	        }
+	        return true;
+	    }
+	}
+	
 }

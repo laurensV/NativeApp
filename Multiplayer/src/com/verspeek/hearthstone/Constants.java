@@ -7,4 +7,7 @@ public interface Constants {
     
     final int MonsterSpeed = 800;	// px per second
     
+    final float ratio = (128f/90f);
+    final float scale = 1.3f;
+    
 }

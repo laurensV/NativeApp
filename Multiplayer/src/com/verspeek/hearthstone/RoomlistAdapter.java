@@ -66,7 +66,7 @@ public class RoomlistAdapter extends BaseAdapter {
         	joinButton.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					roomlistActivity.joinRoom(roomIdList.get(position));
+					roomlistActivity.joinRoom(roomIdList.get(position), true);
 				}
 			});
         }
