@@ -9,6 +9,7 @@ import java.util.Map;
 
 import org.andengine.engine.Engine.EngineLock;
 import org.andengine.engine.camera.Camera;
+import org.andengine.engine.camera.SmoothCamera;
 import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.FillResolutionPolicy;
@@ -20,6 +21,11 @@ import org.andengine.entity.sprite.Sprite;
 import org.andengine.entity.text.Text;
 import org.andengine.entity.text.TextOptions;
 import org.andengine.input.touch.TouchEvent;
+import org.andengine.input.touch.detector.PinchZoomDetector;
+import org.andengine.input.touch.detector.PinchZoomDetector.IPinchZoomDetectorListener;
+import org.andengine.input.touch.detector.ScrollDetector;
+import org.andengine.input.touch.detector.ScrollDetector.IScrollDetectorListener;
+import org.andengine.input.touch.detector.SurfaceScrollDetector;
 import org.andengine.opengl.font.Font;
 import org.andengine.opengl.font.FontFactory;
 import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas;
@@ -40,7 +46,7 @@ import android.util.Log;
 import com.shephertz.app42.gaming.multiplayer.client.WarpClient;
 
 public class GameActivity extends SimpleBaseGameActivity implements
-		IOnSceneTouchListener {
+		IOnSceneTouchListener, IPinchZoomDetectorListener, IScrollDetectorListener{
 
 	public static int CAMERA_WIDTH = 480;
 	public static int CAMERA_HEIGHT = 800;
@@ -59,6 +65,8 @@ public class GameActivity extends SimpleBaseGameActivity implements
 	private TiledTextureRegion mPlayerTiledTextureRegion2;
 	private TiledTextureRegion mPlayerTiledTextureRegion3;
 	private TiledTextureRegion mPlayerTiledTextureRegion4;
+	
+	SmoothCamera mSmoothCamera;
 
 	private Font mFont, mFont2;
 
@@ -115,6 +123,9 @@ public class GameActivity extends SimpleBaseGameActivity implements
 	private int clickCount = 0;
 	/* variable for storing the time of first click */
 	private long startTime;
+	private PinchZoomDetector mPinchZoomDetector;
+	private float mInitialTouchZoomFactor;
+	private SurfaceScrollDetector mScrollDetector;
 
 	@Override
 	public EngineOptions onCreateEngineOptions() {
@@ -131,8 +142,15 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		CAMERA_HEIGHT = displayMetrics.heightPixels;
 		this.mCamera = new Camera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
 		Log.d("FUNCTION", "1END");
+		mSmoothCamera = new SmoothCamera(0, 0, CAMERA_WIDTH,
+                CAMERA_HEIGHT, 4000f,
+                4000f, 1f);
+mSmoothCamera.setBounds(0f, 0f, CAMERA_WIDTH,
+                CAMERA_HEIGHT);
+mSmoothCamera.setBoundsEnabled(true);
+	    
 		return new EngineOptions(true, ScreenOrientation.PORTRAIT_FIXED,
-				new FillResolutionPolicy(), this.mCamera);
+				new FillResolutionPolicy(), this.mSmoothCamera);
 	}
 
 	@Override
@@ -602,11 +620,23 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		this.mMainScene = new Scene();
 		this.mMainScene.setBackground(mGrassBackground);
 		this.mMainScene.setOnSceneTouchListener(this);
+		
+		/* Create and set the zoom detector to listen for 
+		 * touch events using this activity's listener */
+		mPinchZoomDetector = new PinchZoomDetector(this);
+		mScrollDetector = new SurfaceScrollDetector(this);
+		    
+		// Enable the zoom detector
+		mPinchZoomDetector.setEnabled(true);
+		
 		Log.d("FUNCTION", "9E");
 		initObjects();
+		
+		
+	    
 		return this.mMainScene;
 	}
-
+	
 	private void initObjects() {
 		Log.d("FUNCTION", "10S");
 		if (!initialize) {
@@ -859,13 +889,23 @@ public class GameActivity extends SimpleBaseGameActivity implements
 	@Override
 	public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {
 		Log.d("FUNCTION", "17S");
-		if (pSceneTouchEvent.isActionUp() && myTurn) {
-			float x = pSceneTouchEvent.getX();
-			float y = pSceneTouchEvent.getY();
-			checkForCardMove(x, y);
-			sendUpdateEvent(x, y);
-			updateMove(false, Utils.userName, x, y);
-		}
+		this.mPinchZoomDetector.onTouchEvent(pSceneTouchEvent);
+		  if (this.mPinchZoomDetector.isZooming()) {
+		        this.mScrollDetector.setEnabled(false);
+		    } else {
+		        if (pSceneTouchEvent.isActionDown()) {
+		            this.mScrollDetector.setEnabled(true);
+		        }
+		        this.mScrollDetector.onTouchEvent(pSceneTouchEvent);
+				if (pSceneTouchEvent.isActionUp() && myTurn) {
+					float x = pSceneTouchEvent.getX();
+					float y = pSceneTouchEvent.getY();
+					checkForCardMove(x, y);
+					sendUpdateEvent(x, y);
+					updateMove(false, Utils.userName, x, y);
+				}
+		    }
+
 		Log.d("FUNCTION", "17E");
 		return false;
 	}
@@ -1508,6 +1548,62 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		}
 		System.gc();
 		Log.d("FUNCTION", "25E");
+	}
+
+	@Override
+	public void onPinchZoom(PinchZoomDetector pPinchZoomDetector,
+	    TouchEvent pTouchEvent, float pZoomFactor) {
+	    
+	  /* On every sub-sequent touch event (after the initial touch) we offset
+	  * the initial camera zoom factor by the zoom factor calculated by
+	  * pinch-zooming */
+	  final float newZoomFactor = mInitialTouchZoomFactor * pZoomFactor;
+	    
+	  // If the camera is within zooming bounds
+	  if(newZoomFactor < 2.5f && newZoomFactor > 1.0f){
+	    // Set the new zoom factor
+	    mSmoothCamera.setZoomFactor(newZoomFactor);
+	  }
+	}
+	@Override
+	public void onPinchZoomFinished(PinchZoomDetector pPinchZoomDetector,
+	    TouchEvent pTouchEvent, float pZoomFactor) {
+	    
+	  /* On every sub-sequent touch event (after the initial touch) we offset
+	  * the initial camera zoom factor by the zoom factor calculated by
+	  * pinch-zooming */
+	  final float newZoomFactor = mInitialTouchZoomFactor * pZoomFactor;
+	    
+	  // If the camera is within zooming bounds
+	  if(newZoomFactor < 2.5f && newZoomFactor > 1.0f){
+	    // Set the new zoom factor
+	    mSmoothCamera.setZoomFactor(newZoomFactor);
+	  }
+	}
+
+	@Override
+	public void onPinchZoomStarted(PinchZoomDetector pPinchZoomDetector,
+	    TouchEvent pSceneTouchEvent) {
+	  // On first detection of pinch zooming, obtain the initial zoom factor
+	  mInitialTouchZoomFactor = mSmoothCamera.getZoomFactor();
+	}
+	
+	@Override
+	public void onScrollStarted(final ScrollDetector pScollDetector, final int pPointerID, final float pDistanceX, final float pDistanceY) {
+	    final float zoomFactor = this.mSmoothCamera.getZoomFactor();
+	    this.mSmoothCamera.offsetCenter(-pDistanceX / zoomFactor, -pDistanceY / zoomFactor);
+	}
+
+	@Override
+	public void onScroll(final ScrollDetector pScollDetector, final int pPointerID, final float pDistanceX, final float pDistanceY) {
+	    final float zoomFactor = this.mSmoothCamera.getZoomFactor();
+	    this.mSmoothCamera.offsetCenter(-pDistanceX / zoomFactor, -pDistanceY / zoomFactor);
+	}
+
+	@Override
+	public void onScrollFinished(final ScrollDetector pScollDetector, final int pPointerID, final float pDistanceX, final float pDistanceY) {
+	    final float zoomFactor = this.mSmoothCamera.getZoomFactor();
+	    this.mSmoothCamera.offsetCenter(-pDistanceX / zoomFactor, -pDistanceY / zoomFactor);
 	}
 
 }
