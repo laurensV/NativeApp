@@ -10,4 +10,9 @@ public interface Constants {
     final float ratio = (128f/90f);
     final float scale = 1.3f;
     
+    // Camera movement speeds
+    final float maxVelocityX = 1000;
+    final float maxVelocityY = 1000;
+    // Camera zoom speed
+    final float maxZoomFactorChange = 5;
 }

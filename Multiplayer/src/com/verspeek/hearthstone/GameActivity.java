@@ -46,14 +46,14 @@ import android.util.Log;
 import com.shephertz.app42.gaming.multiplayer.client.WarpClient;
 
 public class GameActivity extends SimpleBaseGameActivity implements
-		IOnSceneTouchListener, IPinchZoomDetectorListener, IScrollDetectorListener{
+		IOnSceneTouchListener, IPinchZoomDetectorListener,
+		IScrollDetectorListener {
 
 	public static int CAMERA_WIDTH = 480;
 	public static int CAMERA_HEIGHT = 800;
-	
+
 	public static int zindex = 1;
 
-	private Camera mCamera;
 	private Scene mMainScene;
 
 	private BitmapTextureAtlas mBitmapTextureAtlas1;
@@ -65,7 +65,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 	private TiledTextureRegion mPlayerTiledTextureRegion2;
 	private TiledTextureRegion mPlayerTiledTextureRegion3;
 	private TiledTextureRegion mPlayerTiledTextureRegion4;
-	
+
 	SmoothCamera mSmoothCamera;
 
 	private Font mFont, mFont2;
@@ -85,6 +85,8 @@ public class GameActivity extends SimpleBaseGameActivity implements
 
 	private CardSprite card1, card2, card3, card4, selectedCard;
 	private CardSprite card1p2, card2p2, card3p2, card4p2;
+	
+	private Sprite placeholder1, placeholder2, placeholder3, placeholder4;
 
 	private int selectedCardId = -1;
 
@@ -93,13 +95,13 @@ public class GameActivity extends SimpleBaseGameActivity implements
 
 	private int textureCount = 0;
 
-	private int healthp1 = 100;
-	private int healthp2 = 100;
+	private int healthp1 = 30;
+	private int healthp2 = 30;
 	private int manap1 = 0;
 	private int manap2 = 0;
 	private int manap1Max = 0;
 	private int manap2Max = 0;
-	
+
 	public static int widthCard, heightCard;
 
 	private Text manaTextp1;
@@ -116,13 +118,10 @@ public class GameActivity extends SimpleBaseGameActivity implements
 	private boolean secondPlayer = false;
 	private boolean initialize = false;
 	private boolean selectedFromField = false;
+	private boolean zooming = false;
 
 	List<Integer> idsAttacked = new ArrayList<Integer>();
 
-	/* variable for counting two successive up-down events */
-	private int clickCount = 0;
-	/* variable for storing the time of first click */
-	private long startTime;
 	private PinchZoomDetector mPinchZoomDetector;
 	private float mInitialTouchZoomFactor;
 	private SurfaceScrollDetector mScrollDetector;
@@ -140,15 +139,12 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		this.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
 		CAMERA_WIDTH = displayMetrics.widthPixels;
 		CAMERA_HEIGHT = displayMetrics.heightPixels;
-		this.mCamera = new Camera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
-		Log.d("FUNCTION", "1END");
-		mSmoothCamera = new SmoothCamera(0, 0, CAMERA_WIDTH,
-                CAMERA_HEIGHT, 4000f,
-                4000f, 1f);
-mSmoothCamera.setBounds(0f, 0f, CAMERA_WIDTH,
-                CAMERA_HEIGHT);
-mSmoothCamera.setBoundsEnabled(true);
-	    
+		mSmoothCamera = new SmoothCamera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT,
+				Constants.maxVelocityX, Constants.maxVelocityY,
+				Constants.maxZoomFactorChange);
+		mSmoothCamera.setBounds(0f, 0f, CAMERA_WIDTH, CAMERA_HEIGHT);
+		mSmoothCamera.setBoundsEnabled(true);
+
 		return new EngineOptions(true, ScreenOrientation.PORTRAIT_FIXED,
 				new FillResolutionPolicy(), this.mSmoothCamera);
 	}
@@ -163,7 +159,7 @@ mSmoothCamera.setBoundsEnabled(true);
 		this.mGrassBackground = new RepeatingSpriteBackground(CAMERA_WIDTH,
 				CAMERA_HEIGHT, this.getTextureManager(),
 				AssetBitmapTextureAtlasSource.create(this.getAssets(),
-						"background_grass.png"),
+						"background_sand.png"),
 				this.getVertexBufferObjectManager());
 		this.mBitmapTextureAtlas1 = new BitmapTextureAtlas(
 				this.getTextureManager(), 32, 32);
@@ -186,20 +182,20 @@ mSmoothCamera.setBoundsEnabled(true);
 		this.mPlayerTiledTextureRegion4 = BitmapTextureAtlasTextureRegionFactory
 				.createTiledFromAsset(this.mBitmapTextureAtlas4, this,
 						"monster4.png", 0, 0, 1, 1);
-		
-		widthCard = (int) ((CAMERA_WIDTH-25)/4f);
+
+		widthCard = (int) ((CAMERA_WIDTH - 25) / 4f);
 		heightCard = (int) (widthCard * Constants.ratio);
-		
+
 		this.mFont = FontFactory.create(this.getFontManager(),
 				this.getTextureManager(), 256, 256,
-				Typeface.create(Typeface.DEFAULT, Typeface.BOLD), widthCard/3, true,
-				Color.WHITE);
+				Typeface.create(Typeface.DEFAULT, Typeface.BOLD),
+				widthCard / 3, true, Color.WHITE);
 		this.mFont.load();
-		
+
 		this.mFont2 = FontFactory.create(this.getFontManager(),
 				this.getTextureManager(), 256, 256,
-				Typeface.create(Typeface.DEFAULT, Typeface.BOLD), widthCard/6, true,
-				Color.WHITE);
+				Typeface.create(Typeface.DEFAULT, Typeface.BOLD),
+				widthCard / 6, true, Color.WHITE);
 		this.mFont2.load();
 
 		usedCards = new boolean[Cards.cardsp1.length];
@@ -210,8 +206,6 @@ mSmoothCamera.setBoundsEnabled(true);
 		card2Id = pickCardId();
 		card3Id = pickCardId();
 		card4Id = pickCardId();
-		
-
 
 		this.mBitmapTextureAtlas1.load();
 		this.mBitmapTextureAtlas2.load();
@@ -227,16 +221,14 @@ mSmoothCamera.setBoundsEnabled(true);
 		}
 		init(roomId);
 
-		Log.d("FUNCTION", "2END");
 	}
 
 	private void endTurnSprite() {
-		Log.d("FUNCTION", "3START");
 		BitmapTextureAtlas cardBitmapTextureAtlas1;
 		TiledTextureRegion mCardTiledTextureRegion1;
 
 		cardBitmapTextureAtlas1 = new BitmapTextureAtlas(
-				this.getTextureManager(), 102, 45);
+				this.getTextureManager(), 200, 100);
 
 		mCardTiledTextureRegion1 = BitmapTextureAtlasTextureRegionFactory
 				.createTiledFromAsset(cardBitmapTextureAtlas1, this,
@@ -248,10 +240,10 @@ mSmoothCamera.setBoundsEnabled(true);
 
 		int height = 0;
 		if (!secondPlayer) {
-			height = CAMERA_HEIGHT - 45;
+			height = CAMERA_HEIGHT - (widthCard/2);
 		}
 
-		Sprite sprite = new Sprite(CAMERA_WIDTH - 102, (float) height,
+		Sprite sprite = new Sprite(CAMERA_WIDTH - widthCard, (float) height,
 				mCardTiledTextureRegion1, this.getVertexBufferObjectManager()) {
 			@Override
 			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
@@ -274,14 +266,12 @@ mSmoothCamera.setBoundsEnabled(true);
 
 			}
 		};
-		sprite.setSize(102, 45);
+		sprite.setSize(widthCard, widthCard/2);
 		this.mMainScene.registerTouchArea(sprite);
 		this.mMainScene.attachChild(sprite);
-		Log.d("FUNCTION", "3END");
 	}
 
 	public void startTurn() {
-		Log.d("FUNCTION", "4START");
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
@@ -457,8 +447,112 @@ mSmoothCamera.setBoundsEnabled(true);
 		Log.d("FUNCTION", "5END");
 	}
 
+	private Sprite newSpriteCardPlaceholder(float x, float y) {
+		BitmapTextureAtlas cardBitmapTextureAtlas;
+		TiledTextureRegion mCardTiledTextureRegion;
+
+		cardBitmapTextureAtlas = new BitmapTextureAtlas(
+				this.getTextureManager(), 350, 350);
+
+		mCardTiledTextureRegion = BitmapTextureAtlasTextureRegionFactory
+				.createTiledFromAsset(cardBitmapTextureAtlas, this,
+						"placeholder.png", 0, 0, 1, 1);
+
+		cardBitmapTextureAtlas.load();
+		this.textures.put(textureCount, cardBitmapTextureAtlas);
+		textureCount++;
+
+		Sprite spriteCardPlaceholder = new Sprite(x, y,
+				mCardTiledTextureRegion, this.getVertexBufferObjectManager());
+		return spriteCardPlaceholder;
+	}
+
 	private CardSprite newSprite(final int id, float x, float y) {
 		Log.d("FUNCTION", "6START");
+		BitmapTextureAtlas cardBitmapTextureAtlas;
+		TiledTextureRegion mCardTiledTextureRegion;
+
+		cardBitmapTextureAtlas = new BitmapTextureAtlas(
+				this.getTextureManager(), 350, 350);
+
+		mCardTiledTextureRegion = BitmapTextureAtlasTextureRegionFactory
+				.createTiledFromAsset(cardBitmapTextureAtlas, this,
+						Cards.getName(id, secondPlayer) + ".png", 0, 0, 1, 1);
+
+		cardBitmapTextureAtlas.load();
+		this.textures.put(textureCount, cardBitmapTextureAtlas);
+		textureCount++;
+
+		CardSprite spriteCard = new CardSprite(mCardTiledTextureRegion, mFont,
+				this.getVertexBufferObjectManager()) {
+			@Override
+			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
+					float pTouchAreaLocalX, float pTouchAreaLocalY) {
+				if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP) {
+					selectedCardId = id;
+					selectedFromField = false;
+					if (selectedCard != null) {
+						selectedCard.setScale(1, 1);
+					}
+					zindex++;
+					this.setScale(Constants.scale, Constants.scale);
+					mMainScene.sortChildren();
+
+					selectedCard = this;
+					selectedCardIdEnemy = -1;
+				}
+				return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX,
+						pTouchAreaLocalY);
+
+			}
+		};
+		spriteCard.ChangeAttack("" + Cards.getAttack(id, secondPlayer));
+		spriteCard.ChangeHealth("" + Cards.getHealth(id, secondPlayer));
+		spriteCard.ChangeMana("" + Cards.getMana(id, secondPlayer));
+		spriteCard.setPosition(x, y);
+		Log.d("FUNCTION", "6END");
+		return spriteCard;
+	}
+
+	private CardSprite newSpriteOtherField(final int id, float x, float y) {
+		Log.d("FUNCTION", "7START");
+		BitmapTextureAtlas cardBitmapTextureAtlas1;
+		TiledTextureRegion mCardTiledTextureRegion1;
+
+		cardBitmapTextureAtlas1 = new BitmapTextureAtlas(
+				this.getTextureManager(), 350, 350);
+
+		mCardTiledTextureRegion1 = BitmapTextureAtlasTextureRegionFactory
+				.createTiledFromAsset(cardBitmapTextureAtlas1, this,
+						Cards.getName(id, !secondPlayer) + ".png", 0, 0, 1, 1);
+
+		cardBitmapTextureAtlas1.load();
+		this.textures.put(textureCount, cardBitmapTextureAtlas1);
+		textureCount++;
+
+		CardSprite spriteCard = new CardSprite(mCardTiledTextureRegion1, mFont,
+				this.getVertexBufferObjectManager()) {
+			@Override
+			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
+					float pTouchAreaLocalX, float pTouchAreaLocalY) {
+				if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP) {
+					selectedCardIdEnemy = id;
+				}
+				return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX,
+						pTouchAreaLocalY);
+			}
+		};
+		spriteCard.ChangeAttack("" + Cards.getAttack(id, secondPlayer));
+		spriteCard.ChangeHealth("" + Cards.getHealth(id, secondPlayer));
+		spriteCard.ChangeMana("" + Cards.getMana(id, secondPlayer));
+		spriteCard.setPosition(x, y);
+		Log.d("FUNCTION", "7E");
+		return spriteCard;
+
+	}
+
+	private CardSprite newSpriteOwnField(final int id, float x, float y) {
+		Log.d("FUNCTION", "8S");
 		BitmapTextureAtlas cardBitmapTextureAtlas1;
 		TiledTextureRegion mCardTiledTextureRegion1;
 
@@ -473,123 +567,12 @@ mSmoothCamera.setBoundsEnabled(true);
 		this.textures.put(textureCount, cardBitmapTextureAtlas1);
 		textureCount++;
 
-		CardSprite playButton = new CardSprite(mCardTiledTextureRegion1, mFont,
+		CardSprite spriteCard = new CardSprite(mCardTiledTextureRegion1, mFont,
 				this.getVertexBufferObjectManager()) {
 			@Override
 			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
 					float pTouchAreaLocalX, float pTouchAreaLocalY) {
 				if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP) {
-					selectedCardId = id;
-					selectedFromField = false;
-					if (selectedCard != null) {
-						selectedCard.setScale(1, 1);
-					}
-					zindex++;
-					this.setScale(Constants.scale, Constants.scale);
-					mMainScene.sortChildren();
-					
-					selectedCard = this;
-					selectedCardIdEnemy = -1;
-				}
-				return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX,
-						pTouchAreaLocalY);
-
-			}
-		};
-		playButton.ChangeAttack("" + Cards.getAttack(id, secondPlayer));
-		playButton.ChangeHealth("" + Cards.getHealth(id, secondPlayer));
-		playButton.ChangeMana("" + Cards.getMana(id, secondPlayer));
-		playButton.setPosition(x, y);
-		Log.d("FUNCTION", "6END");
-		return playButton;
-	}
-
-	private CardSprite newSpriteOtherField(final int id, float x, float y) {
-		Log.d("FUNCTION", "7START");
-		BitmapTextureAtlas cardBitmapTextureAtlas1;
-		TiledTextureRegion mCardTiledTextureRegion1;
-
-		cardBitmapTextureAtlas1 = new BitmapTextureAtlas(
-				this.getTextureManager(), 128, 128);
-
-		mCardTiledTextureRegion1 = BitmapTextureAtlasTextureRegionFactory
-				.createTiledFromAsset(cardBitmapTextureAtlas1, this,
-						Cards.getName(id, !secondPlayer) + ".png", 0, 0, 1, 1);
-
-		cardBitmapTextureAtlas1.load();
-		this.textures.put(textureCount, cardBitmapTextureAtlas1);
-		textureCount++;
-
-		CardSprite playButton = new CardSprite(mCardTiledTextureRegion1, mFont,
-				this.getVertexBufferObjectManager()) {
-			@Override
-			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
-					float pTouchAreaLocalX, float pTouchAreaLocalY) {
-				if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP) {
-					selectedCardIdEnemy = id;
-					runOnUiThread(new Runnable() {
-						@Override
-						public void run() {
-							Utils.showToastAlert(
-									GameActivity.this,
-									Cards.getName(id, !secondPlayer)
-											+ " - "
-											+ "attack: "
-											+ Cards.getAttack(id, !secondPlayer)
-											+ ". health: "
-											+ Cards.getHealth(id, !secondPlayer));
-						}
-					});
-
-				}
-				return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX,
-						pTouchAreaLocalY);
-			}
-		};
-		playButton.ChangeAttack("" + Cards.getAttack(id, secondPlayer));
-		playButton.ChangeHealth("" + Cards.getHealth(id, secondPlayer));
-		playButton.ChangeMana("" + Cards.getMana(id, secondPlayer));
-		playButton.setPosition(x, y);
-		Log.d("FUNCTION", "7E");
-		return playButton;
-
-	}
-
-	private CardSprite newSpriteOwnField(final int id, float x, float y) {
-		Log.d("FUNCTION", "8S");
-		BitmapTextureAtlas cardBitmapTextureAtlas1;
-		TiledTextureRegion mCardTiledTextureRegion1;
-
-		cardBitmapTextureAtlas1 = new BitmapTextureAtlas(
-				this.getTextureManager(), 128, 128);
-
-		mCardTiledTextureRegion1 = BitmapTextureAtlasTextureRegionFactory
-				.createTiledFromAsset(cardBitmapTextureAtlas1, this,
-						Cards.getName(id, secondPlayer) + ".png", 0, 0, 1, 1);
-
-		cardBitmapTextureAtlas1.load();
-		this.textures.put(textureCount, cardBitmapTextureAtlas1);
-		textureCount++;
-
-		CardSprite playButton = new CardSprite(mCardTiledTextureRegion1, mFont,
-				this.getVertexBufferObjectManager()) {
-			@Override
-			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
-					float pTouchAreaLocalX, float pTouchAreaLocalY) {
-				if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP) {
-					runOnUiThread(new Runnable() {
-						@Override
-						public void run() {
-							Utils.showToastAlert(
-									GameActivity.this,
-									Cards.getName(id, secondPlayer) + " - "
-											+ "attack: "
-											+ Cards.getAttack(id, secondPlayer)
-											+ ". health: "
-											+ Cards.getHealth(id, secondPlayer));
-						}
-					});
-
 					selectedCardId = id;
 					selectedFromField = true;
 					if (selectedCard != null) {
@@ -605,12 +588,12 @@ mSmoothCamera.setBoundsEnabled(true);
 						pTouchAreaLocalY);
 			}
 		};
-		playButton.ChangeAttack("" + Cards.getAttack(id, secondPlayer));
-		playButton.ChangeHealth("" + Cards.getHealth(id, secondPlayer));
-		playButton.ChangeMana("" + Cards.getMana(id, secondPlayer));
-		playButton.setPosition(x, y);
+		spriteCard.ChangeAttack("" + Cards.getAttack(id, secondPlayer));
+		spriteCard.ChangeHealth("" + Cards.getHealth(id, secondPlayer));
+		spriteCard.ChangeMana("" + Cards.getMana(id, secondPlayer));
+		spriteCard.setPosition(x, y);
 		Log.d("FUNCTION", "8E");
-		return playButton;
+		return spriteCard;
 	}
 
 	@Override
@@ -620,29 +603,46 @@ mSmoothCamera.setBoundsEnabled(true);
 		this.mMainScene = new Scene();
 		this.mMainScene.setBackground(mGrassBackground);
 		this.mMainScene.setOnSceneTouchListener(this);
-		
-		/* Create and set the zoom detector to listen for 
-		 * touch events using this activity's listener */
+
+		/*
+		 * Create and set the zoom detector to listen for touch events using
+		 * this activity's listener
+		 */
 		mPinchZoomDetector = new PinchZoomDetector(this);
 		mScrollDetector = new SurfaceScrollDetector(this);
-		    
+
 		// Enable the zoom detector
 		mPinchZoomDetector.setEnabled(true);
-		
+
 		Log.d("FUNCTION", "9E");
 		initObjects();
-		
-		
-	    
+
 		return this.mMainScene;
 	}
-	
+
 	private void initObjects() {
 		Log.d("FUNCTION", "10S");
 		if (!initialize) {
 			int id = 0;
-			if (!secondPlayer)
+			if (!secondPlayer){
 				id = card1Id;
+				//adding placeholders for cards on field
+				float y = (CAMERA_HEIGHT / 2) + ((CAMERA_HEIGHT / 4 - 35) - heightCard)/2;
+				float padding = (CAMERA_WIDTH - (widthCard*4)) / 5.0f;
+				placeholder1 = newSpriteCardPlaceholder(padding, y);
+				placeholder1.setSize(widthCard, heightCard);
+				this.mMainScene.attachChild(placeholder1);
+				placeholder2 = newSpriteCardPlaceholder(padding*2 + widthCard, y);
+				placeholder2.setSize(widthCard, heightCard);
+				this.mMainScene.attachChild(placeholder2);
+				placeholder3 = newSpriteCardPlaceholder(padding*3 + widthCard*2, y);
+				placeholder3.setSize(widthCard, heightCard);
+				this.mMainScene.attachChild(placeholder3);
+				placeholder4 = newSpriteCardPlaceholder(padding*4 + widthCard*3, y);
+				placeholder4.setSize(widthCard, heightCard);
+				this.mMainScene.attachChild(placeholder4);
+
+			}
 			// Adding card here
 			card1 = newSprite(id, CAMERA_WIDTH / 2 - (widthCard + 5) * 2,
 					CAMERA_HEIGHT - heightCard - 70);
@@ -657,7 +657,8 @@ mSmoothCamera.setBoundsEnabled(true);
 			this.mMainScene.attachChild(card1);
 			if (!secondPlayer)
 				id = card2Id;
-			card2 = newSprite(id, CAMERA_WIDTH / 2 - (widthCard + 5), CAMERA_HEIGHT - heightCard - 70);
+			card2 = newSprite(id, CAMERA_WIDTH / 2 - (widthCard + 5),
+					CAMERA_HEIGHT - heightCard - 70);
 			card2.setSize(widthCard, heightCard);
 			if (!secondPlayer)
 				this.mMainScene.registerTouchArea(card2);
@@ -669,7 +670,8 @@ mSmoothCamera.setBoundsEnabled(true);
 			this.mMainScene.attachChild(card2);
 			if (!secondPlayer)
 				id = card3Id;
-			card3 = newSprite(id, CAMERA_WIDTH / 2, CAMERA_HEIGHT - heightCard - 70);
+			card3 = newSprite(id, CAMERA_WIDTH / 2, CAMERA_HEIGHT - heightCard
+					- 70);
 			card3.setSize(widthCard, heightCard);
 			if (!secondPlayer)
 				this.mMainScene.registerTouchArea(card3);
@@ -681,7 +683,8 @@ mSmoothCamera.setBoundsEnabled(true);
 			this.mMainScene.attachChild(card3);
 			if (!secondPlayer)
 				id = card4Id;
-			card4 = newSprite(id, CAMERA_WIDTH / 2 + (widthCard + 5), CAMERA_HEIGHT - heightCard - 70);
+			card4 = newSprite(id, CAMERA_WIDTH / 2 + (widthCard + 5),
+					CAMERA_HEIGHT - heightCard - 70);
 			card4.setSize(widthCard, heightCard);
 			if (!secondPlayer)
 				this.mMainScene.registerTouchArea(card4);
@@ -698,16 +701,33 @@ mSmoothCamera.setBoundsEnabled(true);
 					this.getVertexBufferObjectManager());
 			this.mMainScene.attachChild(healthTextp1);
 
-			manaTextp1 = new Text(170, CAMERA_HEIGHT - 30, this.mFont2, "mana: "
-					+ manap1, new TextOptions(HorizontalAlign.LEFT),
+			manaTextp1 = new Text(170, CAMERA_HEIGHT - 30, this.mFont2,
+					"mana: " + manap1, new TextOptions(HorizontalAlign.LEFT),
 					this.getVertexBufferObjectManager());
 			this.mMainScene.attachChild(manaTextp1);
 
 			// Adding card here for player 2
 			id = 0;
-			if (secondPlayer)
+			if (secondPlayer){
 				id = card1Id;
-			card1p2 = newSprite(id, CAMERA_WIDTH / 2 - (widthCard + 5) * 2, 0 + 70);
+				float y = (CAMERA_HEIGHT / 2) - ((CAMERA_HEIGHT / 4 - 35) - heightCard)/2 - heightCard;
+				float padding = (CAMERA_WIDTH - (widthCard*4)) / 5.0f;
+				placeholder1 = newSpriteCardPlaceholder(padding, y);
+				placeholder1.setSize(widthCard, heightCard);
+				this.mMainScene.attachChild(placeholder1);
+				placeholder2 = newSpriteCardPlaceholder(padding*2 + widthCard, y);
+				placeholder2.setSize(widthCard, heightCard);
+				this.mMainScene.attachChild(placeholder2);
+				placeholder3 = newSpriteCardPlaceholder(padding*3 + widthCard*2, y);
+				placeholder3.setSize(widthCard, heightCard);
+				this.mMainScene.attachChild(placeholder3);
+				placeholder4 = newSpriteCardPlaceholder(padding*4 + widthCard*3, y);
+				placeholder4.setSize(widthCard, heightCard);
+				this.mMainScene.attachChild(placeholder4);
+			}
+
+			card1p2 = newSprite(id, CAMERA_WIDTH / 2 - (widthCard + 5) * 2,
+					0 + 70);
 			card1p2.setSize(widthCard, heightCard);
 
 			if (secondPlayer)
@@ -890,21 +910,23 @@ mSmoothCamera.setBoundsEnabled(true);
 	public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {
 		Log.d("FUNCTION", "17S");
 		this.mPinchZoomDetector.onTouchEvent(pSceneTouchEvent);
-		  if (this.mPinchZoomDetector.isZooming()) {
-		        this.mScrollDetector.setEnabled(false);
-		    } else {
-		        if (pSceneTouchEvent.isActionDown()) {
-		            this.mScrollDetector.setEnabled(true);
-		        }
-		        this.mScrollDetector.onTouchEvent(pSceneTouchEvent);
-				if (pSceneTouchEvent.isActionUp() && myTurn) {
-					float x = pSceneTouchEvent.getX();
-					float y = pSceneTouchEvent.getY();
-					checkForCardMove(x, y);
-					sendUpdateEvent(x, y);
-					updateMove(false, Utils.userName, x, y);
-				}
-		    }
+		if (this.mPinchZoomDetector.isZooming()) {
+			this.mScrollDetector.setEnabled(false);
+			zooming = true;
+		} else {
+			if (pSceneTouchEvent.isActionDown()) {
+				this.mScrollDetector.setEnabled(true);
+				zooming = false;
+			}
+			this.mScrollDetector.onTouchEvent(pSceneTouchEvent);
+			if (pSceneTouchEvent.isActionUp() && myTurn && !zooming) {
+				float x = pSceneTouchEvent.getX();
+				float y = pSceneTouchEvent.getY();
+				checkForCardMove(x, y);
+				sendUpdateEvent(x, y);
+				updateMove(false, Utils.userName, x, y);
+			}
+		}
 
 		Log.d("FUNCTION", "17E");
 		return false;
@@ -913,6 +935,7 @@ mSmoothCamera.setBoundsEnabled(true);
 	private String getPosition(float x, float y) {
 		Log.d("FUNCTION", "18S");
 		String position = "";
+		
 		float height1 = CAMERA_HEIGHT / 2f;
 		float height2 = CAMERA_HEIGHT * (1f / 4f);
 
@@ -958,11 +981,15 @@ mSmoothCamera.setBoundsEnabled(true);
 				+ selectedFromField);
 		if (selectedCardIdEnemy != -1 && selectedFromField) {
 			int pos = 0;
-			if (selectedCard == card1Field || selectedCard == card1p2Field) pos = 1;
-			if (selectedCard == card2Field || selectedCard == card2p2Field) pos = 2;
-			if (selectedCard == card3Field || selectedCard == card3p2Field) pos = 3;
-			if (selectedCard == card4Field || selectedCard == card4p2Field) pos = 4;
-			Log.d("ATTACK", ""+pos);
+			if (selectedCard == card1Field || selectedCard == card1p2Field)
+				pos = 1;
+			if (selectedCard == card2Field || selectedCard == card2p2Field)
+				pos = 2;
+			if (selectedCard == card3Field || selectedCard == card3p2Field)
+				pos = 3;
+			if (selectedCard == card4Field || selectedCard == card4p2Field)
+				pos = 4;
+			Log.d("ATTACK", "" + pos);
 			placeObject(selectedCardId, selectedCardIdEnemy, getPosition(x, y),
 					null, true, pos);
 		} else if (selectedCardId != -1 && !selectedFromField) {
@@ -970,7 +997,7 @@ mSmoothCamera.setBoundsEnabled(true);
 		} else if (selectedCardId != -1 && selectedFromField) {
 			String destination = getPosition(x, y);
 			if (destination.equals("attackp1")
-					|| destination.equals("attackp2")){
+					|| destination.equals("attackp2")) {
 				placeObject(selectedCardId, -1, destination, null, true, 0);
 			}
 		}
@@ -989,7 +1016,30 @@ mSmoothCamera.setBoundsEnabled(true);
 		boolean destroyAttacked = false;
 		boolean destroyAttacker = false;
 		int health;
+		String attackerDestination = null;
 
+		if ((secondPlayer && !updateProperty) || (!secondPlayer && updateProperty)) {
+			if (pos == 1) {
+				attackerDestination = "card1";
+			} else if (pos == 2) {
+				attackerDestination = "card2";
+			} else if (pos == 3) {
+				attackerDestination = "card3";
+			} else if (pos == 4) {
+				attackerDestination = "card4";
+			}
+		} else {
+			if (pos == 1) {
+				attackerDestination = "card1p2";
+			} else if (pos == 2) {
+				attackerDestination = "card2p2";
+			} else if (pos == 3) {
+				attackerDestination = "card3p2";
+			} else if (pos == 4) {
+				attackerDestination = "card4p2";
+			}
+		}
+		
 		// you attack opponent
 		if (updateProperty) {
 			if (idsAttacked.contains(selectedObject)) {
@@ -1013,11 +1063,13 @@ mSmoothCamera.setBoundsEnabled(true);
 			if (Cards.getHealth(selectedObjectIdEnemy, !secondPlayer) <= 0) {
 				destroyAttacked = true;
 			}
-			
+
 			health = Cards.getHealth(selectedObject, secondPlayer);
-			Cards.setHealth(selectedObject,
-					health - Cards.getAttack(selectedObjectIdEnemy, !secondPlayer),
-					secondPlayer);
+			Cards.setHealth(
+					selectedObject,
+					health
+							- Cards.getAttack(selectedObjectIdEnemy,
+									!secondPlayer), secondPlayer);
 			selectedCard.ChangeHealth(""
 					+ Cards.getHealth(selectedObject, secondPlayer));
 			if (Cards.getHealth(selectedObject, secondPlayer) <= 0) {
@@ -1029,41 +1081,22 @@ mSmoothCamera.setBoundsEnabled(true);
 			Cards.setHealth(selectedObjectIdEnemy,
 					health - Cards.getAttack(selectedObject, !secondPlayer),
 					secondPlayer);
-			objectSprite.ChangeHealth(
-			"" + Cards.getHealth(selectedObjectIdEnemy, secondPlayer));
+			objectSprite.ChangeHealth(""
+					+ Cards.getHealth(selectedObjectIdEnemy, secondPlayer));
 
 			if (Cards.getHealth(selectedObjectIdEnemy, secondPlayer) <= 0) {
 				destroyAttacked = true;
 			}
-			Log.d("ATTACKED", ""+pos);
-			if (secondPlayer) {
-				if (pos == 1) {
-					selectedCard = card1Field;
-				} else if (pos == 2) {
-					selectedCard = card2Field;
-				} else if (pos == 3) {
-					selectedCard = card3Field;
-					Log.d("ATTACKED", "SET");
-				} else if (pos == 4) {
-					selectedCard = card4Field;
-				}
-			} else {
-				if (pos == 1) {
-					selectedCard = card1p2Field;
-				} else if (pos == 2) {
-					selectedCard = card2p2Field;
-				} else if (pos == 3) {
-					selectedCard = card3p2Field;
-				} else if (pos == 4) {
-					selectedCard = card4p2Field;
-				}
-			}
 
-			
+			if (objectMap.get(attackerDestination) != null) {
+				selectedCard = objectMap.get(attackerDestination);
+			}
 			health = Cards.getHealth(selectedObject, !secondPlayer);
-			Cards.setHealth(selectedObject,
-					health - Cards.getAttack(selectedObjectIdEnemy, secondPlayer),
-					!secondPlayer);
+			Cards.setHealth(
+					selectedObject,
+					health
+							- Cards.getAttack(selectedObjectIdEnemy,
+									secondPlayer), !secondPlayer);
 			selectedCard.ChangeHealth(""
 					+ Cards.getHealth(selectedObject, !secondPlayer));
 			if (Cards.getHealth(selectedObject, !secondPlayer) <= 0) {
@@ -1085,6 +1118,7 @@ mSmoothCamera.setBoundsEnabled(true);
 			this.mMainScene.detachChild(selectedCard);
 			this.mMainScene.unregisterTouchArea(selectedCard);
 			selectedCard = null;
+			objectMap.remove(attackerDestination);
 			engineLock.unlock();
 		}
 		if (updateProperty) {
@@ -1163,31 +1197,33 @@ mSmoothCamera.setBoundsEnabled(true);
 
 		float xDest = 0;
 		float yDest = 0;
-		float padding = (CAMERA_WIDTH - 360) / 5.0f;
+		float padding = (CAMERA_WIDTH - (widthCard*4)) / 5.0f;
+		float heightp1 = (CAMERA_HEIGHT / 2) + ((CAMERA_HEIGHT / 4 - 35) - heightCard)/2;
+		float heightp2 = (CAMERA_HEIGHT / 2) - ((CAMERA_HEIGHT / 4 - 35) - heightCard)/2 - heightCard;
 		if (destination.equals("card1")) {
 			xDest = padding;
-			yDest = CAMERA_HEIGHT * (1f / 2f) + 10;
+			yDest = heightp1;
 		} else if (destination.equals("card2")) {
-			xDest = padding * 2 + 90;
-			yDest = CAMERA_HEIGHT * (1f / 2f) + 10;
+			xDest = padding * 2 + widthCard;
+			yDest = heightp1;
 		} else if (destination.equals("card3")) {
-			xDest = padding * 3 + 180;
-			yDest = CAMERA_HEIGHT * (1f / 2f) + 10;
+			xDest = padding * 3 + (widthCard*2);
+			yDest = heightp1;
 		} else if (destination.equals("card4")) {
-			xDest = padding * 4 + 270;
-			yDest = CAMERA_HEIGHT * (1f / 2f) + 10;
+			xDest = padding * 4 + (widthCard*3);
+			yDest = heightp1;
 		} else if (destination.equals("card1p2")) {
 			xDest = padding;
-			yDest = CAMERA_HEIGHT * (1f / 2f) - 138;
+			yDest = heightp2;
 		} else if (destination.equals("card2p2")) {
-			xDest = padding * 2 + 90;
-			yDest = CAMERA_HEIGHT * (1f / 2f) - 138;
+			xDest = padding * 2 + widthCard;
+			yDest = heightp2;
 		} else if (destination.equals("card3p2")) {
-			xDest = padding * 3 + 180;
-			yDest = CAMERA_HEIGHT * (1f / 2f) - 138;
+			xDest = padding * 3 + (widthCard*2);
+			yDest = heightp2;
 		} else if (destination.equals("card4p2")) {
-			xDest = padding * 4 + 270;
-			yDest = CAMERA_HEIGHT * (1f / 2f) - 138;
+			xDest = padding * 4 + (widthCard*3);
+			yDest = heightp2;
 		} else {
 			return;
 		}
@@ -1201,18 +1237,19 @@ mSmoothCamera.setBoundsEnabled(true);
 		}
 
 		if (objectMap.get(destination) != null) {
+			return;
+		}
+
+		if (!checkMana(selectedObjectId, updateProperty)){
 			runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
 					Utils.showToastAlert(GameActivity.this,
-							"already a card at position " + destination);
+							"not enough mana");
 				}
 			});
 			return;
 		}
-
-		if (!checkMana(selectedObjectId, updateProperty))
-			return;
 
 		// create new sprite with new ontouch options
 		CardSprite sprite = null;
@@ -1390,8 +1427,8 @@ mSmoothCamera.setBoundsEnabled(true);
 		} else {
 			manap1 = mana;
 			this.mMainScene.detachChild(manaTextp1);
-			manaTextp1 = new Text(170, CAMERA_HEIGHT - 30, this.mFont2, "mana: "
-					+ manap1, new TextOptions(HorizontalAlign.LEFT),
+			manaTextp1 = new Text(170, CAMERA_HEIGHT - 30, this.mFont2,
+					"mana: " + manap1, new TextOptions(HorizontalAlign.LEFT),
 					this.getVertexBufferObjectManager());
 			this.mMainScene.attachChild(manaTextp1);
 		}
@@ -1445,7 +1482,6 @@ mSmoothCamera.setBoundsEnabled(true);
 					Utils.showToastAlert(GameActivity.this, "Victory");
 				}
 			});
-			
 
 		}
 	}
@@ -1493,7 +1529,6 @@ mSmoothCamera.setBoundsEnabled(true);
 		}
 		clearResources();
 		Log.d("FUNCTION", "23E");
-		// android.os.Process.killProcess(android.os.Process.myPid());
 	}
 
 	@Override
@@ -1501,7 +1536,6 @@ mSmoothCamera.setBoundsEnabled(true);
 		Log.d("FUNCTION", "24S");
 		super.onStop();
 		Log.d("FUNCTION", "24E");
-		// android.os.Process.killProcess(android.os.Process.myPid());
 	}
 
 	@Override
@@ -1517,7 +1551,6 @@ mSmoothCamera.setBoundsEnabled(true);
 		}
 		clearResources();
 		Log.d("FUNCTION", "24E");
-		// android.os.Process.killProcess(android.os.Process.myPid());
 	}
 
 	public void clearResources() {
@@ -1552,58 +1585,57 @@ mSmoothCamera.setBoundsEnabled(true);
 
 	@Override
 	public void onPinchZoom(PinchZoomDetector pPinchZoomDetector,
-	    TouchEvent pTouchEvent, float pZoomFactor) {
-	    
-	  /* On every sub-sequent touch event (after the initial touch) we offset
-	  * the initial camera zoom factor by the zoom factor calculated by
-	  * pinch-zooming */
-	  final float newZoomFactor = mInitialTouchZoomFactor * pZoomFactor;
-	    
-	  // If the camera is within zooming bounds
-	  if(newZoomFactor < 2.5f && newZoomFactor > 1.0f){
-	    // Set the new zoom factor
-	    mSmoothCamera.setZoomFactor(newZoomFactor);
-	  }
+			TouchEvent pTouchEvent, float pZoomFactor) {
+
+		/*
+		 * On every sub-sequent touch event (after the initial touch) we offset
+		 * the initial camera zoom factor by the zoom factor calculated by
+		 * pinch-zooming
+		 */
+		final float newZoomFactor = mInitialTouchZoomFactor * pZoomFactor;
+
+		// If the camera is within zooming bounds
+		if (newZoomFactor < 2.5f && newZoomFactor > 0.95f) {
+			// Set the new zoom factor
+			mSmoothCamera.setZoomFactor(newZoomFactor);
+		}
 	}
+
 	@Override
 	public void onPinchZoomFinished(PinchZoomDetector pPinchZoomDetector,
-	    TouchEvent pTouchEvent, float pZoomFactor) {
-	    
-	  /* On every sub-sequent touch event (after the initial touch) we offset
-	  * the initial camera zoom factor by the zoom factor calculated by
-	  * pinch-zooming */
-	  final float newZoomFactor = mInitialTouchZoomFactor * pZoomFactor;
-	    
-	  // If the camera is within zooming bounds
-	  if(newZoomFactor < 2.5f && newZoomFactor > 1.0f){
-	    // Set the new zoom factor
-	    mSmoothCamera.setZoomFactor(newZoomFactor);
-	  }
+			TouchEvent pTouchEvent, float pZoomFactor) {
+
 	}
 
 	@Override
 	public void onPinchZoomStarted(PinchZoomDetector pPinchZoomDetector,
-	    TouchEvent pSceneTouchEvent) {
-	  // On first detection of pinch zooming, obtain the initial zoom factor
-	  mInitialTouchZoomFactor = mSmoothCamera.getZoomFactor();
-	}
-	
-	@Override
-	public void onScrollStarted(final ScrollDetector pScollDetector, final int pPointerID, final float pDistanceX, final float pDistanceY) {
-	    final float zoomFactor = this.mSmoothCamera.getZoomFactor();
-	    this.mSmoothCamera.offsetCenter(-pDistanceX / zoomFactor, -pDistanceY / zoomFactor);
+			TouchEvent pSceneTouchEvent) {
+		// On first detection of pinch zooming, obtain the initial zoom factor
+		mInitialTouchZoomFactor = mSmoothCamera.getZoomFactor();
 	}
 
 	@Override
-	public void onScroll(final ScrollDetector pScollDetector, final int pPointerID, final float pDistanceX, final float pDistanceY) {
-	    final float zoomFactor = this.mSmoothCamera.getZoomFactor();
-	    this.mSmoothCamera.offsetCenter(-pDistanceX / zoomFactor, -pDistanceY / zoomFactor);
+	public void onScrollStarted(final ScrollDetector pScollDetector,
+			final int pPointerID, final float pDistanceX, final float pDistanceY) {
+		final float zoomFactor = this.mSmoothCamera.getZoomFactor();
+		this.mSmoothCamera.offsetCenter(-pDistanceX / zoomFactor, -pDistanceY
+				/ zoomFactor);
 	}
 
 	@Override
-	public void onScrollFinished(final ScrollDetector pScollDetector, final int pPointerID, final float pDistanceX, final float pDistanceY) {
-	    final float zoomFactor = this.mSmoothCamera.getZoomFactor();
-	    this.mSmoothCamera.offsetCenter(-pDistanceX / zoomFactor, -pDistanceY / zoomFactor);
+	public void onScroll(final ScrollDetector pScollDetector,
+			final int pPointerID, final float pDistanceX, final float pDistanceY) {
+		final float zoomFactor = this.mSmoothCamera.getZoomFactor();
+		this.mSmoothCamera.offsetCenter(-pDistanceX / zoomFactor, -pDistanceY
+				/ zoomFactor);
+	}
+
+	@Override
+	public void onScrollFinished(final ScrollDetector pScollDetector,
+			final int pPointerID, final float pDistanceX, final float pDistanceY) {
+		final float zoomFactor = this.mSmoothCamera.getZoomFactor();
+		this.mSmoothCamera.offsetCenter(-pDistanceX / zoomFactor, -pDistanceY
+				/ zoomFactor);
 	}
 
 }
