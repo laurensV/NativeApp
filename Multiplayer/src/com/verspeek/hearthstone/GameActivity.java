@@ -8,12 +8,15 @@ import java.util.List;
 import java.util.Map;
 
 import org.andengine.engine.Engine.EngineLock;
-import org.andengine.engine.camera.Camera;
 import org.andengine.engine.camera.SmoothCamera;
 import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.FillResolutionPolicy;
+import org.andengine.entity.IEntity;
+import org.andengine.entity.modifier.AlphaModifier;
+import org.andengine.entity.modifier.IEntityModifier;
 import org.andengine.entity.modifier.MoveModifier;
+import org.andengine.entity.modifier.IEntityModifier.IEntityModifierListener;
 import org.andengine.entity.scene.IOnSceneTouchListener;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.scene.background.RepeatingSpriteBackground;
@@ -34,6 +37,7 @@ import org.andengine.opengl.texture.atlas.bitmap.source.AssetBitmapTextureAtlasS
 import org.andengine.opengl.texture.region.TiledTextureRegion;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
 import org.andengine.util.HorizontalAlign;
+import org.andengine.util.modifier.IModifier;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -85,13 +89,15 @@ public class GameActivity extends SimpleBaseGameActivity implements
 
 	private CardSprite card1, card2, card3, card4, selectedCard;
 	private CardSprite card1p2, card2p2, card3p2, card4p2;
-	
+
 	private Sprite placeholder1, placeholder2, placeholder3, placeholder4;
 
 	private int selectedCardId = -1;
 
 	private CardSprite card1Field, card2Field, card3Field, card4Field;
 	private CardSprite card1p2Field, card2p2Field, card3p2Field, card4p2Field;
+	
+	private int card1FieldId, card2FieldId, card3FieldId, card4FieldId;
 
 	private int textureCount = 0;
 
@@ -125,6 +131,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 	private PinchZoomDetector mPinchZoomDetector;
 	private float mInitialTouchZoomFactor;
 	private SurfaceScrollDetector mScrollDetector;
+	private CardSprite moveSprite;
 
 	@Override
 	public EngineOptions onCreateEngineOptions() {
@@ -240,7 +247,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 
 		int height = 0;
 		if (!secondPlayer) {
-			height = CAMERA_HEIGHT - (widthCard/2);
+			height = CAMERA_HEIGHT - (widthCard / 2);
 		}
 
 		Sprite sprite = new Sprite(CAMERA_WIDTH - widthCard, (float) height,
@@ -266,7 +273,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 
 			}
 		};
-		sprite.setSize(widthCard, widthCard/2);
+		sprite.setSize(widthCard, widthCard / 2);
 		this.mMainScene.registerTouchArea(sprite);
 		this.mMainScene.attachChild(sprite);
 	}
@@ -422,6 +429,12 @@ public class GameActivity extends SimpleBaseGameActivity implements
 	}
 
 	private void endTurn() {
+		selectedCardId = -1;
+		selectedFromField = false;
+		if (selectedCard != null) {
+			selectedCard.setScale(1, 1);
+			selectedCard = null;
+		}
 		Log.d("FUNCTION", "5START");
 		float x, y;
 		x = 10;
@@ -466,6 +479,24 @@ public class GameActivity extends SimpleBaseGameActivity implements
 				mCardTiledTextureRegion, this.getVertexBufferObjectManager());
 		return spriteCardPlaceholder;
 	}
+	
+	private Sprite SpriteDamage() {
+		BitmapTextureAtlas cardBitmapTextureAtlas;
+		TiledTextureRegion mCardTiledTextureRegion;
+
+		cardBitmapTextureAtlas = new BitmapTextureAtlas(
+				this.getTextureManager(), 128, 128);
+
+		mCardTiledTextureRegion = BitmapTextureAtlasTextureRegionFactory
+				.createTiledFromAsset(cardBitmapTextureAtlas, this,
+						"damage.png", 0, 0, 1, 1);
+
+		cardBitmapTextureAtlas.load();
+		this.textures.put(textureCount, cardBitmapTextureAtlas);
+		textureCount++;
+
+		return new Sprite(0,0,mCardTiledTextureRegion,	this.getVertexBufferObjectManager());
+	}
 
 	private CardSprite newSprite(final int id, float x, float y) {
 		Log.d("FUNCTION", "6START");
@@ -484,7 +515,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		textureCount++;
 
 		CardSprite spriteCard = new CardSprite(mCardTiledTextureRegion, mFont,
-				this.getVertexBufferObjectManager()) {
+				this.getVertexBufferObjectManager(), SpriteDamage()) {
 			@Override
 			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
 					float pTouchAreaLocalX, float pTouchAreaLocalY) {
@@ -531,7 +562,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		textureCount++;
 
 		CardSprite spriteCard = new CardSprite(mCardTiledTextureRegion1, mFont,
-				this.getVertexBufferObjectManager()) {
+				this.getVertexBufferObjectManager(), SpriteDamage()) {
 			@Override
 			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
 					float pTouchAreaLocalX, float pTouchAreaLocalY) {
@@ -568,7 +599,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		textureCount++;
 
 		CardSprite spriteCard = new CardSprite(mCardTiledTextureRegion1, mFont,
-				this.getVertexBufferObjectManager()) {
+				this.getVertexBufferObjectManager(), SpriteDamage()) {
 			@Override
 			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
 					float pTouchAreaLocalX, float pTouchAreaLocalY) {
@@ -624,21 +655,25 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		Log.d("FUNCTION", "10S");
 		if (!initialize) {
 			int id = 0;
-			if (!secondPlayer){
+			if (!secondPlayer) {
 				id = card1Id;
-				//adding placeholders for cards on field
-				float y = (CAMERA_HEIGHT / 2) + ((CAMERA_HEIGHT / 4 - 35) - heightCard)/2;
-				float padding = (CAMERA_WIDTH - (widthCard*4)) / 5.0f;
+				// adding placeholders for cards on field
+				float y = (CAMERA_HEIGHT / 2)
+						+ ((CAMERA_HEIGHT / 4 - 35) - heightCard) / 2;
+				float padding = (CAMERA_WIDTH - (widthCard * 4)) / 5.0f;
 				placeholder1 = newSpriteCardPlaceholder(padding, y);
 				placeholder1.setSize(widthCard, heightCard);
 				this.mMainScene.attachChild(placeholder1);
-				placeholder2 = newSpriteCardPlaceholder(padding*2 + widthCard, y);
+				placeholder2 = newSpriteCardPlaceholder(
+						padding * 2 + widthCard, y);
 				placeholder2.setSize(widthCard, heightCard);
 				this.mMainScene.attachChild(placeholder2);
-				placeholder3 = newSpriteCardPlaceholder(padding*3 + widthCard*2, y);
+				placeholder3 = newSpriteCardPlaceholder(padding * 3 + widthCard
+						* 2, y);
 				placeholder3.setSize(widthCard, heightCard);
 				this.mMainScene.attachChild(placeholder3);
-				placeholder4 = newSpriteCardPlaceholder(padding*4 + widthCard*3, y);
+				placeholder4 = newSpriteCardPlaceholder(padding * 4 + widthCard
+						* 3, y);
 				placeholder4.setSize(widthCard, heightCard);
 				this.mMainScene.attachChild(placeholder4);
 
@@ -708,20 +743,25 @@ public class GameActivity extends SimpleBaseGameActivity implements
 
 			// Adding card here for player 2
 			id = 0;
-			if (secondPlayer){
+			if (secondPlayer) {
 				id = card1Id;
-				float y = (CAMERA_HEIGHT / 2) - ((CAMERA_HEIGHT / 4 - 35) - heightCard)/2 - heightCard;
-				float padding = (CAMERA_WIDTH - (widthCard*4)) / 5.0f;
+				float y = (CAMERA_HEIGHT / 2)
+						- ((CAMERA_HEIGHT / 4 - 35) - heightCard) / 2
+						- heightCard;
+				float padding = (CAMERA_WIDTH - (widthCard * 4)) / 5.0f;
 				placeholder1 = newSpriteCardPlaceholder(padding, y);
 				placeholder1.setSize(widthCard, heightCard);
 				this.mMainScene.attachChild(placeholder1);
-				placeholder2 = newSpriteCardPlaceholder(padding*2 + widthCard, y);
+				placeholder2 = newSpriteCardPlaceholder(
+						padding * 2 + widthCard, y);
 				placeholder2.setSize(widthCard, heightCard);
 				this.mMainScene.attachChild(placeholder2);
-				placeholder3 = newSpriteCardPlaceholder(padding*3 + widthCard*2, y);
+				placeholder3 = newSpriteCardPlaceholder(padding * 3 + widthCard
+						* 2, y);
 				placeholder3.setSize(widthCard, heightCard);
 				this.mMainScene.attachChild(placeholder3);
-				placeholder4 = newSpriteCardPlaceholder(padding*4 + widthCard*3, y);
+				placeholder4 = newSpriteCardPlaceholder(padding * 4 + widthCard
+						* 3, y);
 				placeholder4.setSize(widthCard, heightCard);
 				this.mMainScene.attachChild(placeholder4);
 			}
@@ -935,7 +975,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 	private String getPosition(float x, float y) {
 		Log.d("FUNCTION", "18S");
 		String position = "";
-		
+
 		float height1 = CAMERA_HEIGHT / 2f;
 		float height2 = CAMERA_HEIGHT * (1f / 4f);
 
@@ -981,13 +1021,13 @@ public class GameActivity extends SimpleBaseGameActivity implements
 				+ selectedFromField);
 		if (selectedCardIdEnemy != -1 && selectedFromField) {
 			int pos = 0;
-			if (selectedCard == card1Field || selectedCard == card1p2Field)
+			if (selectedCardId == card1FieldId)
 				pos = 1;
-			if (selectedCard == card2Field || selectedCard == card2p2Field)
+			if (selectedCardId == card2FieldId)
 				pos = 2;
-			if (selectedCard == card3Field || selectedCard == card3p2Field)
+			if (selectedCardId == card3FieldId)
 				pos = 3;
-			if (selectedCard == card4Field || selectedCard == card4p2Field)
+			if (selectedCardId == card4FieldId)
 				pos = 4;
 			Log.d("ATTACK", "" + pos);
 			placeObject(selectedCardId, selectedCardIdEnemy, getPosition(x, y),
@@ -1017,8 +1057,11 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		boolean destroyAttacker = false;
 		int health;
 		String attackerDestination = null;
+		
+		Log.d("POSITION", ""+pos);
 
-		if ((secondPlayer && !updateProperty) || (!secondPlayer && updateProperty)) {
+		if ((secondPlayer && !updateProperty)
+				|| (!secondPlayer && updateProperty)) {
 			if (pos == 1) {
 				attackerDestination = "card1";
 			} else if (pos == 2) {
@@ -1039,7 +1082,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 				attackerDestination = "card4p2";
 			}
 		}
-		
+
 		// you attack opponent
 		if (updateProperty) {
 			if (idsAttacked.contains(selectedObject)) {
@@ -1058,6 +1101,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			Cards.setHealth(selectedObjectIdEnemy,
 					health - Cards.getAttack(selectedObject, secondPlayer),
 					!secondPlayer);
+			objectSprite.ShowDamage("-"+Cards.getAttack(selectedObject, secondPlayer));
 			objectSprite.ChangeHealth(""
 					+ Cards.getHealth(selectedObjectIdEnemy, !secondPlayer));
 			if (Cards.getHealth(selectedObjectIdEnemy, !secondPlayer) <= 0) {
@@ -1070,6 +1114,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 					health
 							- Cards.getAttack(selectedObjectIdEnemy,
 									!secondPlayer), secondPlayer);
+			selectedCard.ShowDamage("-"+Cards.getAttack(selectedObjectIdEnemy, !secondPlayer));
 			selectedCard.ChangeHealth(""
 					+ Cards.getHealth(selectedObject, secondPlayer));
 			if (Cards.getHealth(selectedObject, secondPlayer) <= 0) {
@@ -1081,6 +1126,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			Cards.setHealth(selectedObjectIdEnemy,
 					health - Cards.getAttack(selectedObject, !secondPlayer),
 					secondPlayer);
+			objectSprite.ShowDamage("-"+Cards.getAttack(selectedObject, !secondPlayer));
 			objectSprite.ChangeHealth(""
 					+ Cards.getHealth(selectedObjectIdEnemy, secondPlayer));
 
@@ -1090,6 +1136,9 @@ public class GameActivity extends SimpleBaseGameActivity implements
 
 			if (objectMap.get(attackerDestination) != null) {
 				selectedCard = objectMap.get(attackerDestination);
+			} else {
+				Log.d("ERROR", attackerDestination);
+				return;
 			}
 			health = Cards.getHealth(selectedObject, !secondPlayer);
 			Cards.setHealth(
@@ -1097,15 +1146,52 @@ public class GameActivity extends SimpleBaseGameActivity implements
 					health
 							- Cards.getAttack(selectedObjectIdEnemy,
 									secondPlayer), !secondPlayer);
+			selectedCard.ShowDamage("-"+Cards.getAttack(selectedObjectIdEnemy, secondPlayer));
 			selectedCard.ChangeHealth(""
 					+ Cards.getHealth(selectedObject, !secondPlayer));
 			if (Cards.getHealth(selectedObject, !secondPlayer) <= 0) {
 				destroyAttacker = true;
 			}
 		}
+		float startx = selectedCard.getX();
+		float starty = selectedCard.getY();
+		float height = heightCard*(2/3f);
+		if ((secondPlayer && updateProperty) || (!secondPlayer && !updateProperty)){
+			height = -heightCard*(2/3f);
+		} 
+		final MoveModifier moveBack = new MoveModifier(0.7f, objectSprite.getX(), startx,
+				objectSprite.getY()+height, starty);
+		
+		moveSprite = selectedCard;
+		
+		MoveModifier moveForward = new MoveModifier(0.2f, startx,
+				objectSprite.getX(), starty, objectSprite.getY()+height) {
+			@Override
+			protected void onModifierFinished(IEntity pItem) {
+				super.onModifierFinished(pItem);
+				if (moveSprite != null){
+					moveSprite.registerEntityModifier(moveBack);
+					moveSprite = null;
+				}
+			}
+		};
+		moveSprite.registerEntityModifier(moveForward);
+		
 		if (destroyAttacked) {
+			if (!updateProperty){
+				if (destination.equals("card1")) card1FieldId = -1;
+				else if (destination.equals("card2")) card2FieldId = -1;
+				else if (destination.equals("card3")) card3FieldId = -1;
+				else if (destination.equals("card4")) card4FieldId = -1;
+				else if (destination.equals("card1p2")) card1FieldId = -1;
+				else if (destination.equals("card2p2")) card2FieldId = -1;
+				else if (destination.equals("card3p2")) card3FieldId = -1;
+				else if (destination.equals("card4p2")) card4FieldId = -1;
+			}
 			final EngineLock engineLock = this.mEngine.getEngineLock();
 			engineLock.lock();
+		    IEntityModifier destroyAnimation = new AlphaModifier(1, 1, 0);
+		    objectSprite.registerEntityModifier(destroyAnimation);
 			this.mMainScene.detachChild(objectSprite);
 			this.mMainScene.unregisterTouchArea(objectSprite);
 			objectSprite = null;
@@ -1113,6 +1199,10 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			engineLock.unlock();
 		}
 		if (destroyAttacker) {
+			if (attackerDestination.equals("card1")) card1FieldId = -1;
+			else if (attackerDestination.equals("card2")) card2FieldId = -1;
+			else if (attackerDestination.equals("card3")) card3FieldId = -1;
+			else if (attackerDestination.equals("card4")) card4FieldId = -1;
 			final EngineLock engineLock = this.mEngine.getEngineLock();
 			engineLock.lock();
 			this.mMainScene.detachChild(selectedCard);
@@ -1194,39 +1284,8 @@ public class GameActivity extends SimpleBaseGameActivity implements
 					userName, updateProperty, pos);
 			return;
 		}
-
-		float xDest = 0;
-		float yDest = 0;
-		float padding = (CAMERA_WIDTH - (widthCard*4)) / 5.0f;
-		float heightp1 = (CAMERA_HEIGHT / 2) + ((CAMERA_HEIGHT / 4 - 35) - heightCard)/2;
-		float heightp2 = (CAMERA_HEIGHT / 2) - ((CAMERA_HEIGHT / 4 - 35) - heightCard)/2 - heightCard;
-		if (destination.equals("card1")) {
-			xDest = padding;
-			yDest = heightp1;
-		} else if (destination.equals("card2")) {
-			xDest = padding * 2 + widthCard;
-			yDest = heightp1;
-		} else if (destination.equals("card3")) {
-			xDest = padding * 3 + (widthCard*2);
-			yDest = heightp1;
-		} else if (destination.equals("card4")) {
-			xDest = padding * 4 + (widthCard*3);
-			yDest = heightp1;
-		} else if (destination.equals("card1p2")) {
-			xDest = padding;
-			yDest = heightp2;
-		} else if (destination.equals("card2p2")) {
-			xDest = padding * 2 + widthCard;
-			yDest = heightp2;
-		} else if (destination.equals("card3p2")) {
-			xDest = padding * 3 + (widthCard*2);
-			yDest = heightp2;
-		} else if (destination.equals("card4p2")) {
-			xDest = padding * 4 + (widthCard*3);
-			yDest = heightp2;
-		} else {
-			return;
-		}
+		
+		if(destination.equals("")||destination == null)return;
 
 		if (destination.charAt(destination.length() - 2) == 'p') {
 			if (!secondPlayer && updateProperty)
@@ -1240,12 +1299,11 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			return;
 		}
 
-		if (!checkMana(selectedObjectId, updateProperty)){
+		if (!checkMana(selectedObjectId, updateProperty)) {
 			runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
-					Utils.showToastAlert(GameActivity.this,
-							"not enough mana");
+					Utils.showToastAlert(GameActivity.this, "not enough mana");
 				}
 			});
 			return;
@@ -1313,11 +1371,9 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			card1Id = -1;
 			pos = 1;
 			if (secondPlayer) {
-				card1p2Field = sprite;
 				removeSprite(card1p2);
 				card1p2 = null;
 			} else {
-				card1Field = sprite;
 				removeSprite(card1);
 				card1 = null;
 			}
@@ -1326,11 +1382,9 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			card2Id = -1;
 			pos = 2;
 			if (secondPlayer) {
-				card2p2Field = sprite;
 				removeSprite(card2p2);
 				card2p2 = null;
 			} else {
-				card2Field = sprite;
 				removeSprite(card2);
 				card2 = null;
 			}
@@ -1338,11 +1392,9 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			card3Id = -1;
 			pos = 3;
 			if (secondPlayer) {
-				card3p2Field = sprite;
 				removeSprite(card3p2);
 				card3p2 = null;
 			} else {
-				card3Field = sprite;
 				removeSprite(card3);
 				card3 = null;
 			}
@@ -1350,11 +1402,9 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			card4Id = -1;
 			pos = 4;
 			if (secondPlayer) {
-				card4p2Field = sprite;
 				removeSprite(card4p2);
 				card4p2 = null;
 			} else {
-				card4Field = sprite;
 				removeSprite(card4);
 				card4 = null;
 			}
@@ -1362,7 +1412,75 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			return;
 		}
 		sprite.setSize(widthCard, heightCard);
+		
 
+		float xDest = 0;
+		float yDest = 0;
+		float padding = (CAMERA_WIDTH - (widthCard * 4)) / 5.0f;
+		float heightp1 = (CAMERA_HEIGHT / 2)
+				+ ((CAMERA_HEIGHT / 4 - 35) - heightCard) / 2;
+		float heightp2 = (CAMERA_HEIGHT / 2)
+				- ((CAMERA_HEIGHT / 4 - 35) - heightCard) / 2 - heightCard;
+		if (destination.equals("card1")) {
+			xDest = padding;
+			yDest = heightp1;
+			if (updateProperty){
+				card1FieldId = selectedObjectId;
+				card1Field = sprite;
+			}
+		} else if (destination.equals("card2")) {
+			xDest = padding * 2 + widthCard;
+			yDest = heightp1;
+			if (updateProperty){
+				card2FieldId = selectedObjectId;
+				card2Field = sprite;
+			}
+		} else if (destination.equals("card3")) {
+			xDest = padding * 3 + (widthCard * 2);
+			yDest = heightp1;
+			if (updateProperty){
+				card3FieldId = selectedObjectId;
+				card3Field = sprite;
+			}
+		} else if (destination.equals("card4")) {
+			xDest = padding * 4 + (widthCard * 3);
+			yDest = heightp1;
+			if (updateProperty){
+				card4FieldId = selectedObjectId;
+				card4Field = sprite;
+			}
+		} else if (destination.equals("card1p2")) {
+			xDest = padding;
+			yDest = heightp2;
+			if (updateProperty){
+				card1FieldId = selectedObjectId;
+				card1p2Field = sprite;
+			}
+		} else if (destination.equals("card2p2")) {
+			xDest = padding * 2 + widthCard;
+			yDest = heightp2;
+			if (updateProperty){
+				card2FieldId = selectedObjectId;
+				card2p2Field = sprite;
+			}
+		} else if (destination.equals("card3p2")) {
+			xDest = padding * 3 + (widthCard * 2);
+			yDest = heightp2;
+			if (updateProperty){
+				card3FieldId = selectedObjectId;
+				card3p2Field = sprite;
+			}
+		} else if (destination.equals("card4p2")) {
+			xDest = padding * 4 + (widthCard * 3);
+			yDest = heightp2;
+			if (updateProperty){
+				card4FieldId = selectedObjectId;
+				card4p2Field = sprite;
+			}
+		} else {
+			return;
+		}
+		
 		selectedCard = null;
 		selectedCardId = -1;
 
