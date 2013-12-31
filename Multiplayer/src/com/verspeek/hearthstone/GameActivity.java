@@ -247,7 +247,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 
 		int height = 0;
 		if (!secondPlayer) {
-			height = CAMERA_HEIGHT - (widthCard / 2);
+			height = (int) (CAMERA_HEIGHT - (widthCard / 2.3f));
 		}
 
 		Sprite sprite = new Sprite(CAMERA_WIDTH - widthCard, (float) height,
@@ -736,7 +736,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 					this.getVertexBufferObjectManager());
 			this.mMainScene.attachChild(healthTextp1);
 
-			manaTextp1 = new Text(170, CAMERA_HEIGHT - 30, this.mFont2,
+			manaTextp1 = new Text(healthTextp1.getWidth()+20, CAMERA_HEIGHT - 30, this.mFont2,
 					"mana: " + manap1, new TextOptions(HorizontalAlign.LEFT),
 					this.getVertexBufferObjectManager());
 			this.mMainScene.attachChild(manaTextp1);
@@ -820,7 +820,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 					this.getVertexBufferObjectManager());
 			this.mMainScene.attachChild(healthTextp2);
 
-			manaTextp2 = new Text(170, 10, this.mFont2, "mana: " + manap2,
+			manaTextp2 = new Text(healthTextp2.getWidth()+20, 10, this.mFont2, "mana: " + manap2,
 					new TextOptions(HorizontalAlign.LEFT),
 					this.getVertexBufferObjectManager());
 			this.mMainScene.attachChild(manaTextp2);
@@ -1538,14 +1538,14 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		if (secondPlayer) {
 			manap2 = mana;
 			this.mMainScene.detachChild(manaTextp2);
-			manaTextp2 = new Text(170, 10, this.mFont2, "mana: " + manap2,
+			manaTextp2 = new Text(healthTextp2.getWidth()+20, 10, this.mFont2, "mana: " + manap2,
 					new TextOptions(HorizontalAlign.LEFT),
 					this.getVertexBufferObjectManager());
 			this.mMainScene.attachChild(manaTextp2);
 		} else {
 			manap1 = mana;
 			this.mMainScene.detachChild(manaTextp1);
-			manaTextp1 = new Text(170, CAMERA_HEIGHT - 30, this.mFont2,
+			manaTextp1 = new Text(healthTextp1.getWidth()+20, CAMERA_HEIGHT - 30, this.mFont2,
 					"mana: " + manap1, new TextOptions(HorizontalAlign.LEFT),
 					this.getVertexBufferObjectManager());
 			this.mMainScene.attachChild(manaTextp1);
