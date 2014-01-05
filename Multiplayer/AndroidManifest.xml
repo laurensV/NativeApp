@@ -14,7 +14,7 @@
         android:icon="@drawable/hearthstone_logo"
         android:label="@string/app_name" >
         <activity
-            android:name="com.verspeek.hearthstone.MainActivity"
+            android:name="uva.verspeek.hearthstone.activities.MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -22,10 +22,10 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.verspeek.hearthstone.RoomlistActivity" >
+            android:name="uva.verspeek.hearthstone.activities.RoomlistActivity" >
         </activity>
         <activity
-           android:name="com.verspeek.hearthstone.GameActivity" >
+           android:name="uva.verspeek.hearthstone.activities.GameActivity" >
         </activity>
     </application>
 

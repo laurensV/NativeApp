@@ -1,6 +1,10 @@
-package com.verspeek.hearthstone;
+package uva.verspeek.hearthstone.activities;
+
 
 import java.util.HashMap;
+
+import uva.verspeek.hearthstone.instances.RoomlistAdapter;
+import uva.verspeek.hearthstone.tools.Utils;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -10,6 +14,8 @@ import android.view.View;
 import android.widget.ListView;
 
 import com.verspeek.hearthstone.R;
+import com.verspeek.hearthstone.R.id;
+import com.verspeek.hearthstone.R.layout;
 import com.shephertz.app42.gaming.multiplayer.client.WarpClient;
 import com.shephertz.app42.gaming.multiplayer.client.command.WarpResponseResultCode;
 import com.shephertz.app42.gaming.multiplayer.client.events.AllRoomsEvent;

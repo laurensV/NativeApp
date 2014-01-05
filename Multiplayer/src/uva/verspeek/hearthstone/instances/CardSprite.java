@@ -1,4 +1,4 @@
-package com.verspeek.hearthstone;
+package uva.verspeek.hearthstone.instances;
 
 import org.andengine.entity.IEntity;
 import org.andengine.entity.modifier.AlphaModifier;
@@ -13,6 +13,10 @@ import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.util.HorizontalAlign;
 import org.andengine.util.modifier.IModifier;
 
+import uva.verspeek.hearthstone.controllers.CardsController;
+import uva.verspeek.hearthstone.tools.createSprites;
+
+
 public class CardSprite extends Sprite {
 	
 	private Text textAttack;
@@ -25,7 +29,7 @@ public class CardSprite extends Sprite {
 
 	public CardSprite(TiledTextureRegion pTextureRegion, Font pFont, VertexBufferObjectManager vb, Sprite damage) {
 		super(0, 0, pTextureRegion, vb);
-		this.setScaleCenter(GameActivity.widthCard/2, GameActivity.heightCard/2);
+		this.setScaleCenter(CardsController.widthCard/2, CardsController.heightCard/2);
 
 		
 		textAttack = new Text(0, 0, pFont, "--", new TextOptions(HorizontalAlign.LEFT), vb);
@@ -41,12 +45,12 @@ public class CardSprite extends Sprite {
 		//textMana.setColor(0, 0, 1f);
 	
 		textDamage = new Text(0, 0, pFont, "---", new TextOptions(HorizontalAlign.LEFT), vb);
-		textDamage.setPosition(this.getX()+GameActivity.widthCard/2-textDamage.getWidth()/2, this.getY()+GameActivity.heightCard/2-textDamage.getHeight()/2);
+		textDamage.setPosition(this.getX()+CardsController.widthCard/2-textDamage.getWidth()/2, this.getY()+CardsController.heightCard/2-textDamage.getHeight()/2);
 		textDamage.setAlpha(0);
 		
 		damageSprite = damage;
-		damageSprite.setSize(GameActivity.heightCard/2, GameActivity.heightCard/2);
-		damageSprite.setPosition(this.getX()+GameActivity.widthCard/2-damageSprite.getWidth()/2, this.getY()+GameActivity.heightCard/2-damageSprite.getHeight()/2);
+		damageSprite.setSize(CardsController.heightCard/2, CardsController.heightCard/2);
+		damageSprite.setPosition(this.getX()+CardsController.widthCard/2-damageSprite.getWidth()/2, this.getY()+CardsController.heightCard/2-damageSprite.getHeight()/2);
 		damageSprite.setAlpha(0);
 		
 		this.attachChild(textAttack);
@@ -104,7 +108,7 @@ public class CardSprite extends Sprite {
 		textMana.setScaleCenter(textMana.getWidth()/2, textMana.getHeight()/2);
 		textMana.setPosition(pWidth*(1f/20f), pHeight*(1f/35f));
 		textMana.setScale(1/2f);
-		this.setZIndex(GameActivity.zindex);
+		this.setZIndex(createSprites.zindex);
 	}
 	@Override
 	public void setScale(float sWidth, float sHeight){
@@ -118,7 +122,7 @@ public class CardSprite extends Sprite {
 		textMana.setScaleCenter(textMana.getWidth()/2, textMana.getHeight()/2);
 		textMana.setPosition(this.getWidth()*(1f/20f), this.getHeight()*(1f/35f));
 		textMana.setScale(sWidth/2f);
-		this.setZIndex(GameActivity.zindex);
+		this.setZIndex(createSprites.zindex);
 	}
 	
 }

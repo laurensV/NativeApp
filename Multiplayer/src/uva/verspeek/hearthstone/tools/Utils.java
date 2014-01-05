@@ -1,4 +1,4 @@
-package com.verspeek.hearthstone;
+package uva.verspeek.hearthstone.tools;
 
 import android.app.Activity;
 import android.app.ProgressDialog;

@@ -1,6 +1,8 @@
-package com.verspeek.hearthstone;
+package uva.verspeek.hearthstone.instances;
 
 import java.util.ArrayList;
+
+import uva.verspeek.hearthstone.activities.RoomlistActivity;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -11,6 +13,8 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.verspeek.hearthstone.R;
+import com.verspeek.hearthstone.R.id;
+import com.verspeek.hearthstone.R.layout;
 import com.shephertz.app42.gaming.multiplayer.client.events.RoomData;
 
 public class RoomlistAdapter extends BaseAdapter {
@@ -20,7 +24,7 @@ public class RoomlistAdapter extends BaseAdapter {
 	private Context context;
 	private RoomlistActivity roomlistActivity;
 	
-	RoomlistAdapter(Context c){
+	public RoomlistAdapter(Context c){
 		this.context = c;
 		roomlistActivity = (RoomlistActivity)context;
 	}

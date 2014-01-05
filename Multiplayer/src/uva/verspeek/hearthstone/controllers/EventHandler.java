@@ -1,8 +1,11 @@
-package com.verspeek.hearthstone;
+package uva.verspeek.hearthstone.controllers;
 
 import java.util.HashMap;
 import java.util.Map;
 import org.json.JSONObject;
+
+import uva.verspeek.hearthstone.activities.GameActivity;
+import uva.verspeek.hearthstone.tools.Utils;
 import android.util.Log;
 import com.shephertz.app42.gaming.multiplayer.client.events.ChatEvent;
 import com.shephertz.app42.gaming.multiplayer.client.events.LiveRoomInfoEvent;
@@ -32,15 +35,15 @@ public class EventHandler implements RoomRequestListener, NotifyListener {
 			try {
 				JSONObject object = new JSONObject(message);
 				if (object.has("turn")) {
-					gameScreen.startTurn();
+					gameScreen.gc.startTurn();
 				} else if(object.has("attackCharacter")){
-					gameScreen.attackCharacter(Integer.parseInt(object.getString("attackCharacter")), false);
+					gameScreen.cc.attackCharacter(Integer.parseInt(object.getString("attackCharacter")), false);
 				} else if (object.has("drawCard")) {
-					gameScreen.drawCard(object.getString("drawCard"), false);
+					gameScreen.cc.drawCard(object.getString("drawCard"), false);
 				} else {
 					float xCord = Float.parseFloat(object.getString("X"));
 					float yCord = Float.parseFloat(object.getString("Y"));
-					gameScreen.updateMove(true, sender, xCord, yCord);
+					gameScreen.gc.updateMove(true, sender, xCord, yCord);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -98,7 +101,7 @@ public class EventHandler implements RoomRequestListener, NotifyListener {
 						pos = Integer.parseInt(parts[1]);
 					}
 					properties.put(entry.getKey(), entry.getValue());
-					gameScreen.placeObject(fruitId, selectedObjectIdEnemy,
+					gameScreen.cc.playCard(fruitId, selectedObjectIdEnemy,
 							entry.getKey(), userName, false, pos);
 				}
 			}
@@ -113,7 +116,7 @@ public class EventHandler implements RoomRequestListener, NotifyListener {
 
 	@Override
 	public void onUserJoinedRoom(RoomData roomData, String name) {
-		gameScreen.addMorePlayer(true, name, false);
+		gameScreen.gc.addMorePlayer(true, name, false);
 	}
 
 	@Override
@@ -135,9 +138,9 @@ public class EventHandler implements RoomRequestListener, NotifyListener {
 				secondPlayer = true;
 			for (int i = 0; i < joinedUser.length; i++) {
 				if (joinedUser[i].equals(Utils.userName)) {
-					gameScreen.addMorePlayer(true, joinedUser[i], secondPlayer);
+					gameScreen.gc.addMorePlayer(true, joinedUser[i], secondPlayer);
 				} else {
-					gameScreen
+					gameScreen.gc
 							.addMorePlayer(false, joinedUser[i], secondPlayer);
 				}
 			}
@@ -158,7 +161,7 @@ public class EventHandler implements RoomRequestListener, NotifyListener {
 					fruitId = Integer.parseInt(parts[0]);
 					pos = Integer.parseInt(parts[1]);
 				}
-				gameScreen.placeObject(fruitId, selectedObjectIdEnemy,
+				gameScreen.cc.playCard(fruitId, selectedObjectIdEnemy,
 						entry.getKey(), null, false, pos);
 			}
 		}

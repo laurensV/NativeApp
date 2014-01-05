@@ -1,6 +1,6 @@
-package com.verspeek.hearthstone;
+package uva.verspeek.hearthstone.models;
 
-public class Cards {
+public class Decks {
 	
 	public static String[][] cardsp1;
 	public static String[][] cardsp2;
@@ -8,25 +8,27 @@ public class Cards {
 	public static void initCards(){
 		cardsp1 = new String[][] {
 				  //{name, attack, health, mana}
-					{"back", "0", "0", "0"},
-					{"hogger", "4", "5", "5"},
-					{"hogger", "5", "6", "1"},
-					{"hogger", "1", "2", "2"},
-					{"hogger", "8", "9", "4"},
-					{"hogger", "8", "9", "3"},
-					{"hogger", "8", "9", "1"},
-					{"hogger", "8", "9", "2"}
+					{"back", "0", "0", "0", ""},
+					{"hogger", "4", "5", "5", "m"},
+					{"hogger", "5", "6", "1", "m"},
+					{"hogger", "1", "2", "2", "m"},
+					{"hogger", "8", "9", "4", "m"},
+					{"hogger", "8", "9", "3", "m"},
+					{"hogger", "8", "9", "1", "m"},
+					{"hogger", "8", "9", "2", "m"},
+					{"healthPlus3", "0", "3", "2", "s"}
 			};
 		cardsp2 = new String[][] {
 				  //{name, attack, health, mana}
-					{"back", "0", "0", "0"},
-					{"hogger", "4", "5", "5"},
-					{"hogger", "5", "6", "1"},
-					{"hogger", "1", "2", "2"},
-					{"hogger", "8", "9", "4"},
-					{"hogger", "8", "9", "3"},
-					{"hogger", "8", "9", "1"},
-					{"hogger", "8", "9", "2"}
+					{"back", "0", "0", "0", "m"},
+					{"hogger", "4", "5", "5", "m"},
+					{"hogger", "5", "6", "1", "m"},
+					{"hogger", "1", "2", "2", "m"},
+					{"hogger", "8", "9", "4", "m"},
+					{"hogger", "8", "9", "3", "m"},
+					{"hogger", "8", "9", "1", "m"},
+					{"hogger", "8", "9", "2", "m"},
+					{"healthPlus3", "0", "3", "2", "s"}
 			};
 	}
 	
@@ -74,5 +76,4 @@ public class Cards {
 		else
 			cardsp1[id][3] = ""+ mana;
 	}
-
 }

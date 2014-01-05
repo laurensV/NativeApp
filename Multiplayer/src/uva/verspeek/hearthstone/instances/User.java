@@ -1,4 +1,4 @@
-package com.verspeek.hearthstone;
+package uva.verspeek.hearthstone.instances;
 
 import org.andengine.entity.sprite.Sprite;
 
