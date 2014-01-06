@@ -25,9 +25,11 @@ public class CardSprite extends Sprite {
 	private Text textDamage;
 	
 	private Sprite damageSprite;
+	private Sprite highlightSprite;
 	private final AlphaModifier fadeout = new AlphaModifier(3, 1, 0);
 
-	public CardSprite(TiledTextureRegion pTextureRegion, Font pFont, VertexBufferObjectManager vb, Sprite damage) {
+
+	public CardSprite(TiledTextureRegion pTextureRegion, Font pFont, VertexBufferObjectManager vb, Sprite damage, Sprite highlight) {
 		super(0, 0, pTextureRegion, vb);
 		this.setScaleCenter(CardsController.widthCard/2, CardsController.heightCard/2);
 
@@ -53,11 +55,17 @@ public class CardSprite extends Sprite {
 		damageSprite.setPosition(this.getX()+CardsController.widthCard/2-damageSprite.getWidth()/2, this.getY()+CardsController.heightCard/2-damageSprite.getHeight()/2);
 		damageSprite.setAlpha(0);
 		
+		highlightSprite = highlight;
+		highlightSprite.setSize(CardsController.widthCard, CardsController.heightCard);
+		//highlightSprite.setPosition(this.getX()+CardsController.widthCard/2-damageSprite.getWidth()/2, this.getY()+CardsController.heightCard/2-damageSprite.getHeight()/2);
+		highlightSprite.setAlpha(0);
+		
 		this.attachChild(textAttack);
 		this.attachChild(textHealth);
 		this.attachChild(textMana);
 		this.attachChild(damageSprite);
 		this.attachChild(textDamage);
+		this.attachChild(highlightSprite);
 	}
 	
 	public void ChangeAttack(String pTextAttack){
@@ -73,6 +81,7 @@ public class CardSprite extends Sprite {
 	public void ShowDamage(String pTextDamage){
 		textDamage.setText(pTextDamage);
 		//damageSprite.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
+		fadeout.reset();
 
 	    IEntityModifier fadein = new AlphaModifier(3, 1, 1, new IEntityModifierListener(){
 	        @Override
@@ -91,10 +100,15 @@ public class CardSprite extends Sprite {
 	    textDamage.registerEntityModifier(fadein);
 	}
 	
-	public void HideDamage(){
-		this.detachChild(textDamage);
-		this.detachChild(damageSprite);
+	public void ShowHighlight(){
+	    IEntityModifier fadein = new AlphaModifier(3, 0, 1);
+	    highlightSprite.registerEntityModifier(fadein);
 	}
+	
+	public void HideHighlight(){
+		 highlightSprite.setAlpha(0);
+	}
+
 	
 	@Override
 	public void setSize(float pWidth, float pHeight){

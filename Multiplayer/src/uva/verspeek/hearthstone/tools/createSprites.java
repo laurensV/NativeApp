@@ -25,6 +25,7 @@ public class createSprites {
 
 	public static int textureCount = 0;
 	public static int zindex = 1;
+	public Sprite endTurnSprite;
 	
 
 
@@ -47,13 +48,16 @@ public class createSprites {
 		gameScreen.textures.put(textureCount, cardBitmapTextureAtlas1);
 		textureCount++;
 
-		int height = 0;
+		int height = 60;
+		
+		int y = 5;
+	
 		if (!gameScreen.secondPlayer) {
-			height = (int) (GameActivity.CAMERA_HEIGHT - (CardsController.widthCard / 2.3f));
+			y = (int) (GameActivity.CAMERA_HEIGHT - 65);
 		}
 
-		Sprite sprite = new Sprite(GameActivity.CAMERA_WIDTH
-				- CardsController.widthCard, (float) height,
+		endTurnSprite = new Sprite(GameActivity.CAMERA_WIDTH
+				- CardsController.widthCard, (float) y,
 				mCardTiledTextureRegion1,
 				gameScreen.getVertexBufferObjectManager()) {
 			@Override
@@ -77,9 +81,10 @@ public class createSprites {
 
 			}
 		};
-		sprite.setSize(CardsController.widthCard, CardsController.widthCard / 2);
-		gameScreen.mMainScene.registerTouchArea(sprite);
-		gameScreen.mMainScene.attachChild(sprite);
+		endTurnSprite.setSize(height*2, height);
+		endTurnSprite.setAlpha(0);
+		gameScreen.mMainScene.registerTouchArea(endTurnSprite);
+		gameScreen.mMainScene.attachChild(endTurnSprite);
 	}
 
 	public Sprite newCardSpriteCardPlaceholder(float x, float y) {
@@ -121,6 +126,25 @@ public class createSprites {
 		return new Sprite(0, 0, mCardTiledTextureRegion,
 				gameScreen.getVertexBufferObjectManager());
 	}
+	
+	public static Sprite SpriteHighlight() {
+		BitmapTextureAtlas cardBitmapTextureAtlas;
+		TiledTextureRegion mCardTiledTextureRegion;
+
+		cardBitmapTextureAtlas = new BitmapTextureAtlas(
+				gameScreen.getTextureManager(), 360, 360);
+
+		mCardTiledTextureRegion = BitmapTextureAtlasTextureRegionFactory
+				.createTiledFromAsset(cardBitmapTextureAtlas, gameScreen,
+						"card_highlighted.png", 0, 0, 1, 1);
+
+		cardBitmapTextureAtlas.load();
+		gameScreen.textures.put(textureCount, cardBitmapTextureAtlas);
+		textureCount++;
+
+		return new Sprite(0, 0, mCardTiledTextureRegion,
+				gameScreen.getVertexBufferObjectManager());
+	}
 
 	public static CardSprite newCardSprite(final int id, float x, float y) {
 		Log.d("FUNCTION", "6START");
@@ -141,7 +165,7 @@ public class createSprites {
 
 		CardSprite spriteCard = new CardSprite(mCardTiledTextureRegion,
 				gameScreen.mFont, gameScreen.getVertexBufferObjectManager(),
-				SpriteDamage()) {
+				SpriteDamage(), SpriteHighlight()) {
 			@Override
 			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
 					float pTouchAreaLocalX, float pTouchAreaLocalY) {
@@ -197,7 +221,7 @@ public class createSprites {
 
 		CardSprite spriteCard = new CardSprite(mCardTiledTextureRegion1,
 				gameScreen.mFont, gameScreen.getVertexBufferObjectManager(),
-				SpriteDamage()) {
+				SpriteDamage(), SpriteHighlight()) {
 			@Override
 			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
 					float pTouchAreaLocalX, float pTouchAreaLocalY) {
@@ -238,7 +262,7 @@ public class createSprites {
 
 		CardSprite spriteCard = new CardSprite(mCardTiledTextureRegion1,
 				gameScreen.mFont, gameScreen.getVertexBufferObjectManager(),
-				SpriteDamage()) {
+				SpriteDamage(), SpriteHighlight()) {
 			@Override
 			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
 					float pTouchAreaLocalX, float pTouchAreaLocalY) {

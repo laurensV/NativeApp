@@ -21,6 +21,7 @@ public class RoomlistAdapter extends BaseAdapter {
 
 	
 	private ArrayList<String> roomIdList = new ArrayList<String>();
+	private ArrayList<String> roomNameList = new ArrayList<String>();
 	private Context context;
 	private RoomlistActivity roomlistActivity;
 	
@@ -36,13 +37,18 @@ public class RoomlistAdapter extends BaseAdapter {
 	
 	public void setData(RoomData[] roomData){
 		roomIdList.clear();
+		roomNameList.clear();
+
 		for(int i=0;i<roomData.length;i++){
 			roomIdList.add(roomData[i].getId());
+			roomNameList.add(roomData[i].getName());
 		}
 		notifyDataSetChanged();
 	}
 	public void clear(){
 		roomIdList.clear();
+		roomNameList.clear();
+
 		notifyDataSetChanged();
 	}
 	
@@ -66,7 +72,7 @@ public class RoomlistAdapter extends BaseAdapter {
         if (roomIdList != null) {
         	TextView roomId = (TextView) convertView.findViewById(R.id.item_roomId);
         	Button joinButton = (Button) convertView.findViewById(R.id.item_joinButton);
-        	roomId.setText(roomIdList.get(position));
+        	roomId.setText(roomNameList.get(position));
         	joinButton.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {

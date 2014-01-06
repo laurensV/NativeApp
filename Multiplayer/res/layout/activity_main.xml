@@ -14,8 +14,9 @@
         android:orientation="vertical" >
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="241dp"
             android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
             android:text="@string/chooseMonster"
             android:textColor="#FFFFFF"
             android:textSize="25sp" />
@@ -27,32 +28,36 @@
 
             <ImageView
                 android:id="@+id/imageView1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="59dp"
+                android:layout_height="59dp"
                 android:contentDescription="@drawable/monster1"
                 android:onClick="onMonsterClicked"
+                android:scaleType="center"
                 android:src="@drawable/monster1" />
 
             <ImageView
                 android:id="@+id/imageView2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="59dp"
+                android:layout_height="59dp"
+                android:scaleType="center"
                 android:contentDescription="@drawable/monster2"
                 android:onClick="onMonsterClicked"
                 android:src="@drawable/monster2" />
 
             <ImageView
                 android:id="@+id/imageView3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="59dp"
+                android:layout_height="59dp"
+                android:scaleType="center"
                 android:contentDescription="@drawable/monster3"
                 android:onClick="onMonsterClicked"
                 android:src="@drawable/monster3" />
 
             <ImageView
                 android:id="@+id/imageView4"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="59dp"
+                android:layout_height="59dp"
+                android:scaleType="center"
                 android:contentDescription="@drawable/monster4"
                 android:onClick="onMonsterClicked"
                 android:src="@drawable/monster4" />
@@ -77,6 +82,11 @@
 	        android:text="@string/playGame" />
     </LinearLayout>
 
-    
+    <ImageView
+        android:id="@+id/imageView5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/linearLayout1"
+        android:src="@drawable/logo" />
 
 </RelativeLayout>

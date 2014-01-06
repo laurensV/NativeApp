@@ -20,11 +20,6 @@ import org.andengine.entity.sprite.Sprite;
 import org.andengine.entity.text.Text;
 import org.andengine.entity.text.TextOptions;
 import org.andengine.input.touch.TouchEvent;
-import org.andengine.input.touch.detector.PinchZoomDetector;
-import org.andengine.input.touch.detector.PinchZoomDetector.IPinchZoomDetectorListener;
-import org.andengine.input.touch.detector.ScrollDetector;
-import org.andengine.input.touch.detector.ScrollDetector.IScrollDetectorListener;
-import org.andengine.input.touch.detector.SurfaceScrollDetector;
 import org.andengine.opengl.font.Font;
 import org.andengine.opengl.font.FontFactory;
 import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas;
@@ -181,9 +176,9 @@ public class GameActivity extends SimpleBaseGameActivity implements
 		cc.usedCards[0] = true;
 
 		cc.card1Id = cc.pickCardId();
-		cc.card2Id = cc.pickCardId();
-		cc.card3Id = cc.pickCardId();
-		cc.card4Id = cc.pickCardId();
+		//cc.card2Id = cc.pickCardId();
+		//cc.card3Id = cc.pickCardId();
+		//cc.card4Id = cc.pickCardId();
 
 		this.mBitmapTextureAtlas1.load();
 		this.mBitmapTextureAtlas2.load();
@@ -265,7 +260,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 				cc.card1.ChangeMana("");
 			}
 			this.mMainScene.attachChild(cc.card1);
-			if (!secondPlayer)
+			/*if (!secondPlayer)
 				id = cc.card2Id;
 			cc.card2 = uva.verspeek.hearthstone.tools.createSprites.newCardSprite(id,
 					CAMERA_WIDTH / 2 - (CardsController.widthCard + 5),
@@ -309,7 +304,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 				cc.card4.ChangeHealth("");
 				cc.card4.ChangeMana("");
 			}
-			this.mMainScene.attachChild(cc.card4);
+			this.mMainScene.attachChild(cc.card4);*/
 
 			gc.healthTextp1 = new Text(60, CAMERA_HEIGHT - 30, this.mFont2,
 					"health: " + gc.healthp1, new TextOptions(
@@ -371,7 +366,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 				cc.card1p2.ChangeMana("");
 			}
 			this.mMainScene.attachChild(cc.card1p2);
-			if (secondPlayer)
+			/*if (secondPlayer)
 				id = cc.card2Id;
 			cc.card2p2 = uva.verspeek.hearthstone.tools.createSprites.newCardSprite(
 					id, CAMERA_WIDTH / 2 - (CardsController.widthCard + 5),
@@ -414,7 +409,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 				cc.card4p2.ChangeHealth("");
 				cc.card4p2.ChangeMana("");
 			}
-			this.mMainScene.attachChild(cc.card4p2);
+			this.mMainScene.attachChild(cc.card4p2);*/
 
 			gc.healthTextp2 = new Text(60, 10, this.mFont2, "health: "
 					+ gc.healthp2, new TextOptions(HorizontalAlign.LEFT),
@@ -480,6 +475,7 @@ public class GameActivity extends SimpleBaseGameActivity implements
 			Sprite sprite = userMap.get(name).getSprite();
 			final EngineLock engineLock = this.mEngine.getEngineLock();
 			engineLock.lock();
+			
 			this.mMainScene.detachChild(sprite);
 			sprite.dispose();
 			sprite = null;

@@ -8,5 +8,6 @@
     <string name="alertSelect">Please select character to start game</string>
     <string name="enterName">Enter Your Name</string>
     <string name="joinRoom">Join Game</string>
+    <string name="create">Create Game</string>
 
 </resources>

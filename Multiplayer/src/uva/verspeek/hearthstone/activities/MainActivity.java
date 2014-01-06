@@ -10,11 +10,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.ImageView.ScaleType;
 
 import com.verspeek.hearthstone.R;
-import com.verspeek.hearthstone.R.id;
-import com.verspeek.hearthstone.R.layout;
-import com.verspeek.hearthstone.R.string;
 import com.shephertz.app42.gaming.multiplayer.client.WarpClient;
 import com.shephertz.app42.gaming.multiplayer.client.command.WarpResponseResultCode;
 import com.shephertz.app42.gaming.multiplayer.client.events.ConnectEvent;
@@ -46,17 +45,32 @@ public class MainActivity extends Activity implements ConnectionRequestListener 
 	}
 	
 	public void onMonsterClicked(View view){
+		ImageView character1 =(ImageView) findViewById(R.id.imageView1);
+		ImageView character2 =(ImageView) findViewById(R.id.imageView2);
+		ImageView character3 =(ImageView) findViewById(R.id.imageView3);
+		ImageView character4 =(ImageView) findViewById(R.id.imageView4);
+		
+		character1.setScaleType(ScaleType.CENTER);
+		character2.setScaleType(ScaleType.CENTER);
+		character3.setScaleType(ScaleType.CENTER);
+		character4.setScaleType(ScaleType.CENTER);
+		
 		switch (view.getId()) {
+
 			case R.id.imageView1:
 				selectedMonster = 1;
-			break;
+				character1.setScaleType(ScaleType.FIT_XY);
+				break;
 			case R.id.imageView2:
+				character2.setScaleType(ScaleType.FIT_XY);
 				selectedMonster = 2;
 			break;
 			case R.id.imageView3:
+				character3.setScaleType(ScaleType.FIT_XY);
 				selectedMonster = 3;
 			break;
 			case R.id.imageView4:
+				character4.setScaleType(ScaleType.FIT_XY);
 				selectedMonster = 4;
 			break;
 		}

@@ -14,8 +14,6 @@ import android.view.View;
 import android.widget.ListView;
 
 import com.verspeek.hearthstone.R;
-import com.verspeek.hearthstone.R.id;
-import com.verspeek.hearthstone.R.layout;
 import com.shephertz.app42.gaming.multiplayer.client.WarpClient;
 import com.shephertz.app42.gaming.multiplayer.client.command.WarpResponseResultCode;
 import com.shephertz.app42.gaming.multiplayer.client.events.AllRoomsEvent;
@@ -102,7 +100,7 @@ public class RoomlistActivity extends Activity implements ZoneRequestListener, R
 		properties.put("card2p2", "");
 		properties.put("card3p2", "");
 		properties.put("card4p2", "");
-		theClient.createRoom("name"+System.currentTimeMillis(), "Owner", 4, properties);
+		theClient.createRoom(Utils.userName+"'s game", Utils.userName, 4, properties);
 	}
 	
 	@Override

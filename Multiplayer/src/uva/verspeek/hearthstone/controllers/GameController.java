@@ -1,7 +1,6 @@
 package uva.verspeek.hearthstone.controllers;
 
-
-
+import org.andengine.engine.Engine.EngineLock;
 import org.andengine.entity.modifier.MoveModifier;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.entity.text.Text;
@@ -47,8 +46,9 @@ public class GameController {
 				Utils.showToastAlert(gameScreen, "Its your turn");
 			}
 		});
-
+		gameScreen.createSprites.endTurnSprite.setAlpha(1);
 		myTurn = true;
+		gameScreen.cc.checkHighlight();
 		if (!gameScreen.secondPlayer) {
 			manap1Max++;
 			setMana(manap1Max, gameScreen.secondPlayer);
@@ -80,6 +80,7 @@ public class GameController {
 	public void endTurn() {
 		gameScreen.cc.selectedCardId = -1;
 		gameScreen.cc.selectedFromField = false;
+		gameScreen.createSprites.endTurnSprite.setAlpha(0);
 		if (gameScreen.cc.selectedCard != null) {
 			gameScreen.cc.selectedCard.setScale(1, 1);
 			gameScreen.cc.selectedCard = null;
@@ -106,6 +107,7 @@ public class GameController {
 		});
 		myTurn = false;
 		gameScreen.cc.idsAttacked.clear();
+		gameScreen.cc.checkHighlight();
 		Log.d("FUNCTION", "5END");
 	}
 	
@@ -163,16 +165,25 @@ public class GameController {
 	public void setMana(int mana, boolean secondPlayer) {
 		if (secondPlayer) {
 			manap2 = mana;
-			gameScreen.mMainScene.detachChild(manaTextp2);
+			final EngineLock engineLock = gameScreen.getEngine().getEngineLock();
+			engineLock.lock();
+   			gameScreen.mMainScene.detachChild(manaTextp2);
+
+			engineLock.unlock();
+
 			manaTextp2 = new Text(healthTextp2.getWidth() + healthTextp2.getX()
-					+ 20, 10, gameScreen.mFont2, "mana: " + manap2, new TextOptions(
+					+ 20, 10, gameScreen.mFont2, "mana: " + manap2+"/"+manap2Max, new TextOptions(
 					HorizontalAlign.LEFT), gameScreen.getVertexBufferObjectManager());
 			gameScreen.mMainScene.attachChild(manaTextp2);
 		} else {
 			manap1 = mana;
-			gameScreen.mMainScene.detachChild(manaTextp1);
+			final EngineLock engineLock = gameScreen.getEngine().getEngineLock();
+			engineLock.lock();
+ 			gameScreen.mMainScene.detachChild(manaTextp1);
+
+			 engineLock.unlock();
 			manaTextp1 = new Text(healthTextp1.getWidth() + healthTextp1.getX()
-					+ 20, GameActivity.CAMERA_HEIGHT - 30, gameScreen.mFont2, "mana: " + manap1,
+					+ 20, GameActivity.CAMERA_HEIGHT - 30, gameScreen.mFont2, "mana: " + manap1+"/"+manap1Max,
 					new TextOptions(HorizontalAlign.LEFT),
 					gameScreen.getVertexBufferObjectManager());
 			gameScreen.mMainScene.attachChild(manaTextp1);
@@ -182,14 +193,22 @@ public class GameController {
 	public void setHealth(int health, boolean secondPlayer) {
 		if (secondPlayer) {
 			healthp2 = health;
-			gameScreen.mMainScene.detachChild(healthTextp2);
+			final EngineLock engineLock = gameScreen.getEngine().getEngineLock();
+			engineLock.lock();
+ 			gameScreen.mMainScene.detachChild(healthTextp2);
+
+			 engineLock.unlock();
 			healthTextp2 = new Text(60, 10, gameScreen.mFont2, "health: " + healthp2,
 					new TextOptions(HorizontalAlign.LEFT),
 					gameScreen.getVertexBufferObjectManager());
 			gameScreen.mMainScene.attachChild(healthTextp2);
 		} else {
 			healthp1 = health;
-			gameScreen.mMainScene.detachChild(healthTextp1);
+			final EngineLock engineLock = gameScreen.getEngine().getEngineLock();
+			engineLock.lock();
+ 			gameScreen.mMainScene.detachChild(healthTextp1);
+
+			 engineLock.unlock();
 			healthTextp1 = new Text(60, GameActivity.CAMERA_HEIGHT - 30, gameScreen.mFont2,
 					"health: " + healthp1,
 					new TextOptions(HorizontalAlign.LEFT),

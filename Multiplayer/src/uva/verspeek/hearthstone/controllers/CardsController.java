@@ -38,11 +38,8 @@ public class CardsController {
 	public CardSprite card4p2;
 	
 	public static Sprite placeholder1;
-
 	public static Sprite placeholder2;
-
 	public static Sprite placeholder3;
-
 	public static Sprite placeholder4;
 	
 	public static int widthCard, heightCard;
@@ -53,10 +50,10 @@ public class CardsController {
 	public int selectedCardIdEnemy = -1;
 	public int selectedCardId = -1;
 
-	public int card1Id;
-	public int card2Id;
-	public int card3Id;
-	public int card4Id;
+	public int card1Id = -1;
+	public int card2Id = -1;
+	public int card3Id = -1;
+	public int card4Id = -1;
 
 	public boolean[] usedCards;
 	public boolean selectedFromField = false;
@@ -68,6 +65,13 @@ public class CardsController {
 	public int card3FieldId;
 	public int card4FieldId;
 
+	private int card1FieldIdEnemy;
+	private int card2FieldIdEnemy;
+	private int card3FieldIdEnemy;
+	private int card4FieldIdEnemy;
+
+	private CardSprite objectSprite;
+
 	public CardsController(GameActivity gameScreen) {
 		CardsController.gameScreen = gameScreen;
 	}
@@ -78,19 +82,52 @@ public class CardsController {
 				+ selectedFromField);
 		if (selectedCardIdEnemy != -1 && selectedFromField) {
 			int pos = 0;
-			if (selectedCardId == card1FieldId)
+			String position = "";
+			if (selectedCardId == card1FieldId){
 				pos = 1;
-			if (selectedCardId == card2FieldId)
+			}
+			if (selectedCardId == card2FieldId){
 				pos = 2;
-			if (selectedCardId == card3FieldId)
+			}
+			if (selectedCardId == card3FieldId){
 				pos = 3;
-			if (selectedCardId == card4FieldId)
+			}
+			if (selectedCardId == card4FieldId){
 				pos = 4;
+			}
+			if (selectedCardIdEnemy == card1FieldIdEnemy){
+				if (gameScreen.secondPlayer){
+					position = "card1";
+				} else {
+					position = "card1p2";
+				}
+			}
+			if (selectedCardIdEnemy == card2FieldIdEnemy){
+				if (gameScreen.secondPlayer){
+					position = "card2";
+				} else {
+					position = "card2p2";
+				}
+			}
+			if (selectedCardIdEnemy == card3FieldIdEnemy){
+				if (gameScreen.secondPlayer){
+					position = "card3";
+				} else {
+					position = "card3p2";
+				}
+			}
+			if (selectedCardIdEnemy == card4FieldIdEnemy){
+				if (gameScreen.secondPlayer){
+					position = "card4";
+				} else {
+					position = "card4p2";
+				}
+			}
 			Log.d("ATTACK", "" + pos + "/" + selectedCardId + ":"
 					+ card1FieldId + ":" + card2FieldId + ":" + card3FieldId
 					+ ":" + card4FieldId + ":");
 
-			playCard(selectedCardId, selectedCardIdEnemy, getPosition(x, y),
+			playCard(selectedCardId, selectedCardIdEnemy, position,
 					null, true, pos);
 		} else if (selectedCardId != -1 && !selectedFromField) {
 			playCard(selectedCardId, -1, getPosition(x, y), null, true, 0);
@@ -101,7 +138,75 @@ public class CardsController {
 				playCard(selectedCardId, -1, destination, null, true, 0);
 			}
 		}
+		gameScreen.cc.checkHighlight();
+
 		Log.d("FUNCTION", "19E");
+	}
+	
+	public void checkHighlight(){
+		String position = "";
+		CardSprite card;
+		if (card1FieldId != -1){
+			if (gameScreen.secondPlayer){
+				position = "card1p2";
+			} else {
+				position = "card1";
+			}
+			if (objectMap.get(position) != null) {
+				card = objectMap.get(position);
+				if (!idsAttacked.contains(card1FieldId) && gameScreen.gc.myTurn) {
+					card.ShowHighlight();
+				} else {
+					card.HideHighlight();
+				}
+			}
+		}
+		if (card2FieldId != -1){
+			if (gameScreen.secondPlayer){
+				position = "card2p2";
+			} else {
+				position = "card2";
+			}
+			if (objectMap.get(position) != null) {
+				card = objectMap.get(position);
+				if (!idsAttacked.contains(card2FieldId) && gameScreen.gc.myTurn) {
+					card.ShowHighlight();
+				} else {
+					card.HideHighlight();
+				}
+			}
+		}
+		if (card3FieldId != -1){
+			if (gameScreen.secondPlayer){
+				position = "card3p2";
+			} else {
+				position = "card3";
+			}
+			if (objectMap.get(position) != null) {
+				card = objectMap.get(position);
+				if (!idsAttacked.contains(card3FieldId) && gameScreen.gc.myTurn) {
+					card.ShowHighlight();
+				} else {
+					card.HideHighlight();
+				}
+			}
+		}
+		if (card4FieldId != -1){
+			if (gameScreen.secondPlayer){
+				position = "card4p2";
+			} else {
+				position = "card4";
+			}
+			if (objectMap.get(position) != null) {
+				card = objectMap.get(position);
+				if (!idsAttacked.contains(card4FieldId) && gameScreen.gc.myTurn) {
+					card.ShowHighlight();
+				} else {
+					card.HideHighlight();
+				}
+			}
+		}
+	
 	}
 
 	public String getPosition(float x, float y) {
@@ -156,11 +261,27 @@ public class CardsController {
 	public synchronized void playCard(final int selectedObjectId,
 			final int selectedObjectIdEnemy, final String destination,
 			final String userName, boolean updateProperty, int pos) {
+		gameScreen.cc.checkHighlight();
 		Log.d("FUNCTION", "21S");
 		Log.d("PLACEOBJECT", "" + selectedObjectId + "/"
 				+ selectedObjectIdEnemy + selectedFromField + destination);
-
-		if (destination == "attackp1" || destination == "attackp2") {
+		
+		if (destination.equals("") || destination == null)
+			return;
+		
+		if (updateProperty){
+			if (Decks.getType(selectedObjectId, gameScreen.secondPlayer) == "s"){
+				playSpellCard(selectedObjectId, destination, userName, updateProperty);
+				return;
+			}
+		}else{
+			if (Decks.getType(selectedObjectId, gameScreen.secondPlayer) == "s"){
+				playSpellCard(selectedObjectId, destination, userName, updateProperty);
+				return;
+			}
+		}
+		
+		if ((destination == "attackp1" || destination == "attackp2") && selectedFromField) {
 			if (gameScreen.secondPlayer && updateProperty
 					&& destination == "attackp2")
 				return;
@@ -170,16 +291,16 @@ public class CardsController {
 			attackCharacter(selectedObjectId, updateProperty);
 			return;
 		}
+		
+
 
 		if (selectedObjectIdEnemy != -1
 				&& (!updateProperty || selectedFromField)) {
 			attackCard(selectedObjectId, selectedObjectIdEnemy, destination,
 					userName, updateProperty, pos);
 			return;
-		}
-
-		if (destination.equals("") || destination == null)
-			return;
+		}	
+	
 
 		if (destination.charAt(destination.length() - 2) == 'p') {
 			if (!gameScreen.secondPlayer && updateProperty)
@@ -188,6 +309,8 @@ public class CardsController {
 			if (gameScreen.secondPlayer && updateProperty)
 				return;
 		}
+
+
 
 		if (objectMap.get(destination) != null) {
 			return;
@@ -317,48 +440,64 @@ public class CardsController {
 			yDest = heightp1;
 			if (updateProperty) {
 				card1FieldId = selectedObjectId;
+			} else {
+				card1FieldIdEnemy = selectedObjectId;
 			}
 		} else if (destination.equals("card2")) {
 			xDest = padding * 2 + CardsController.widthCard;
 			yDest = heightp1;
 			if (updateProperty) {
 				card2FieldId = selectedObjectId;
+			} else {
+				card2FieldIdEnemy = selectedObjectId;
 			}
 		} else if (destination.equals("card3")) {
 			xDest = padding * 3 + (CardsController.widthCard * 2);
 			yDest = heightp1;
 			if (updateProperty) {
 				card3FieldId = selectedObjectId;
+			} else {
+				card3FieldIdEnemy = selectedObjectId;
 			}
 		} else if (destination.equals("card4")) {
 			xDest = padding * 4 + (CardsController.widthCard * 3);
 			yDest = heightp1;
 			if (updateProperty) {
 				card4FieldId = selectedObjectId;
+			} else {
+				card4FieldIdEnemy = selectedObjectId;
 			}
 		} else if (destination.equals("card1p2")) {
 			xDest = padding;
 			yDest = heightp2;
 			if (updateProperty) {
 				card1FieldId = selectedObjectId;
+			} else {
+				card1FieldIdEnemy = selectedObjectId;
 			}
 		} else if (destination.equals("card2p2")) {
 			xDest = padding * 2 + CardsController.widthCard;
 			yDest = heightp2;
 			if (updateProperty) {
 				card2FieldId = selectedObjectId;
+			} else {
+				card2FieldIdEnemy = selectedObjectId;
 			}
 		} else if (destination.equals("card3p2")) {
 			xDest = padding * 3 + (CardsController.widthCard * 2);
 			yDest = heightp2;
 			if (updateProperty) {
 				card3FieldId = selectedObjectId;
+			} else {
+				card3FieldIdEnemy = selectedObjectId;
 			}
 		} else if (destination.equals("card4p2")) {
 			xDest = padding * 4 + (CardsController.widthCard * 3);
 			yDest = heightp2;
 			if (updateProperty) {
 				card4FieldId = selectedObjectId;
+			} else {
+				card4FieldIdEnemy = selectedObjectId;
 			}
 		} else {
 			return;
@@ -389,11 +528,27 @@ public class CardsController {
 		});
 		Log.d("FUNCTION", "21E");
 	}
+	
+	public void playSpellCard(final int selectedObjectId, final String destination,
+			final String userName, boolean updateProperty) {
+		
+		gameScreen.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				Utils.showToastAlert(gameScreen,
+						"Spell cards not implemented yet");
+			}
+		});
+		return;
+		
+	}
 
 	public void drawCard(String card, boolean updateProperty) {
 		CardSprite sprite = null;
 		Log.d("DRAWCARD", card + updateProperty);
-		int id = -1, width = -1, height = -1;
+		int id = -1;
+		float width = -1, height = -1;
+		float padding = (GameActivity.CAMERA_WIDTH - (CardsController.widthCard * 4)) / 5.0f;
 		if (card.equals("card1")) {
 			if (!updateProperty)
 				id = 0;
@@ -401,10 +556,10 @@ public class CardsController {
 				card1Id = pickCardId();
 				id = card1Id;
 			}
-			width = GameActivity.CAMERA_WIDTH / 2
-					- (CardsController.widthCard + 5) * 2;
+			width = padding;
+			
 			height = GameActivity.CAMERA_HEIGHT - CardsController.heightCard - 70;
-			card1 = createSprites.newCardSprite(id, width, height);
+			card1 = createSprites.newCardSprite(id, GameActivity.CAMERA_WIDTH, GameActivity.CAMERA_HEIGHT);
 			sprite = card1;
 		} else if (card.equals("card2")) {
 			if (!updateProperty)
@@ -413,10 +568,9 @@ public class CardsController {
 				card2Id = pickCardId();
 				id = card2Id;
 			}
-			width = GameActivity.CAMERA_WIDTH / 2
-					- (CardsController.widthCard + 5);
+			width = padding * 2 + (CardsController.widthCard * 1);
 			height = GameActivity.CAMERA_HEIGHT - CardsController.heightCard - 70;
-			card2 = createSprites.newCardSprite(id, width, height);
+			card2 = createSprites.newCardSprite(id, GameActivity.CAMERA_WIDTH, GameActivity.CAMERA_HEIGHT);
 			sprite = card2;
 		} else if (card.equals("card3")) {
 			if (!updateProperty)
@@ -425,9 +579,9 @@ public class CardsController {
 				card3Id = pickCardId();
 				id = card3Id;
 			}
-			width = GameActivity.CAMERA_WIDTH / 2;
+			width = padding * 3 + (CardsController.widthCard * 2);
 			height = GameActivity.CAMERA_HEIGHT - CardsController.heightCard - 70;
-			card3 = createSprites.newCardSprite(id, width, height);
+			card3 = createSprites.newCardSprite(id, GameActivity.CAMERA_WIDTH, GameActivity.CAMERA_HEIGHT);
 			sprite = card3;
 		} else if (card.equals("card4")) {
 			if (!updateProperty)
@@ -436,10 +590,9 @@ public class CardsController {
 				card4Id = pickCardId();
 				id = card4Id;
 			}
-			width = GameActivity.CAMERA_WIDTH / 2
-					+ (CardsController.widthCard + 5);
+			width = padding * 4 + (CardsController.widthCard * 3);
 			height = GameActivity.CAMERA_HEIGHT - CardsController.heightCard - 70;
-			card4 = createSprites.newCardSprite(id, width, height);
+			card4 = createSprites.newCardSprite(id, GameActivity.CAMERA_WIDTH, GameActivity.CAMERA_HEIGHT);
 			sprite = card4;
 		} else if (card.equals("card1p2")) {
 			if (!updateProperty)
@@ -448,10 +601,9 @@ public class CardsController {
 				card1Id = pickCardId();
 				id = card1Id;
 			}
-			width = GameActivity.CAMERA_WIDTH / 2
-					- (CardsController.widthCard + 5) * 2;
+			width = padding;
 			height = 0 + 70;
-			card1p2 = createSprites.newCardSprite(id, width, height);
+			card1p2 = createSprites.newCardSprite(id, GameActivity.CAMERA_WIDTH, -CardsController.heightCard);
 			sprite = card1p2;
 		} else if (card.equals("card2p2")) {
 			if (!updateProperty)
@@ -460,10 +612,9 @@ public class CardsController {
 				card2Id = pickCardId();
 				id = card2Id;
 			}
-			width = GameActivity.CAMERA_WIDTH / 2
-					- (CardsController.widthCard + 5);
+			width = padding * 2 + (CardsController.widthCard * 1);
 			height = 0 + 70;
-			card2p2 = createSprites.newCardSprite(id, width, height);
+			card2p2 = createSprites.newCardSprite(id, GameActivity.CAMERA_WIDTH, -CardsController.heightCard);
 			sprite = card2p2;
 		} else if (card.equals("card3p2")) {
 			if (!updateProperty)
@@ -472,9 +623,9 @@ public class CardsController {
 				card3Id = pickCardId();
 				id = card3Id;
 			}
-			width = GameActivity.CAMERA_WIDTH / 2;
+			width = padding * 3 + (CardsController.widthCard * 2);
 			height = 0 + 70;
-			card3p2 = createSprites.newCardSprite(id, width, height);
+			card3p2 = createSprites.newCardSprite(id, GameActivity.CAMERA_WIDTH, -CardsController.heightCard);
 			sprite = card3p2;
 		} else if (card.equals("card4p2")) {
 			if (!updateProperty)
@@ -483,13 +634,22 @@ public class CardsController {
 				card4Id = pickCardId();
 				id = card4Id;
 			}
-			width = GameActivity.CAMERA_WIDTH / 2
-					+ (CardsController.widthCard + 5);
+			width = padding * 4 + (CardsController.widthCard * 3);
 			height = 0 + 70;
-			card4p2 = createSprites.newCardSprite(id, width, height);
+			card4p2 = createSprites.newCardSprite(id, GameActivity.CAMERA_WIDTH, -CardsController.heightCard);
 			sprite = card4p2;
 		}
 		if (id != -1) {
+			MoveModifier drawCardAnimation = new MoveModifier(0.7f,
+					sprite.getX(), width, sprite.getY(),
+					height){
+				@Override
+				protected void onModifierFinished(IEntity pItem) {
+					super.onModifierFinished(pItem);
+					gameScreen.cc.checkHighlight();
+				}
+			};
+			sprite.registerEntityModifier(drawCardAnimation);
 			sprite.setSize(CardsController.widthCard, CardsController.heightCard);
 			if (updateProperty) {
 				gameScreen.mMainScene.registerTouchArea(sprite);
@@ -529,10 +689,12 @@ public class CardsController {
 			final int selectedObjectIdEnemy, final String destination,
 			final String userName, boolean updateProperty, int pos) {
 		Log.d("FUNCTION", "20S");
-		CardSprite objectSprite = null;
+		objectSprite = null;
 
 		if (objectMap.get(destination) != null) {
 			objectSprite = objectMap.get(destination);
+		} else {
+			Log.d("ERROR", "NO CARD AT SELECTED DESTINATION");
 		}
 		boolean destroyAttacked = false;
 		boolean destroyAttacker = false;
@@ -611,6 +773,7 @@ public class CardsController {
 			if (Decks.getHealth(selectedObject, gameScreen.secondPlayer) <= 0) {
 				destroyAttacker = true;
 			}
+			
 			// you get attacked by opponent
 		} else {
 			health = Decks.getHealth(selectedObjectIdEnemy,
@@ -666,7 +829,13 @@ public class CardsController {
 		}
 		final MoveModifier moveBack = new MoveModifier(0.7f,
 				objectSprite.getX(), startx, objectSprite.getY() + height,
-				starty);
+				starty){
+			@Override
+			protected void onModifierFinished(IEntity pItem) {
+				super.onModifierFinished(pItem);
+				gameScreen.cc.checkHighlight();
+			}
+		};
 
 		moveSprite = selectedCard;
 
@@ -707,7 +876,7 @@ public class CardsController {
 			engineLock.lock();
 			IEntityModifier destroyAnimation = new AlphaModifier(1, 1, 0);
 			objectSprite.registerEntityModifier(destroyAnimation);
-			gameScreen.mMainScene.detachChild(objectSprite);
+   			gameScreen.mMainScene.detachChild(objectSprite);
 			gameScreen.mMainScene.unregisterTouchArea(objectSprite);
 			objectSprite = null;
 			objectMap.remove(destination);
@@ -737,6 +906,7 @@ public class CardsController {
 			engineLock.lock();
 			gameScreen.mMainScene.detachChild(selectedCard);
 			gameScreen.mMainScene.unregisterTouchArea(selectedCard);
+
 			selectedCard = null;
 			objectMap.remove(attackerDestination);
 			engineLock.unlock();
@@ -757,7 +927,39 @@ public class CardsController {
 	}
 
 	public void attackCharacter(final int id, boolean updateProperty) {
+		final CardSprite attacker;
+		String position = "";
 		if (updateProperty) {
+
+			if (id == card1FieldId){
+				if (!gameScreen.secondPlayer){
+					position = "card1";
+				} else {
+					position = "card1p2";
+				}
+			}
+			if (id == card2FieldId){
+				if (!gameScreen.secondPlayer){
+					position = "card2";
+				} else {
+					position = "card2p2";
+				}
+			}
+			if (id == card3FieldId){
+				if (!gameScreen.secondPlayer){
+					position = "card3";
+				} else {
+					position = "card3p2";
+				}
+			}
+			if (id == card4FieldId){
+				if (!gameScreen.secondPlayer){
+					position = "card4";
+				} else {
+					position = "card4p2";
+				}
+			}
+			
 
 			if (idsAttacked.contains(id)) {
 				gameScreen.runOnUiThread(new Runnable() {
@@ -769,6 +971,7 @@ public class CardsController {
 				});
 				return;
 			}
+			
 			idsAttacked.add(id);
 
 			if (gameScreen.secondPlayer) {
@@ -790,6 +993,34 @@ public class CardsController {
 				e.printStackTrace();
 			}
 		} else {
+			if (id == card1FieldIdEnemy){
+				if (gameScreen.secondPlayer){
+					position = "card1";
+				} else {
+					position = "card1p2";
+				}
+			}
+			if (id == card2FieldIdEnemy){
+				if (gameScreen.secondPlayer){
+					position = "card2";
+				} else {
+					position = "card2p2";
+				}
+			}
+			if (id == card3FieldIdEnemy){
+				if (gameScreen.secondPlayer){
+					position = "card3";
+				} else {
+					position = "card3p2";
+				}
+			}
+			if (id == card4FieldIdEnemy){
+				if (gameScreen.secondPlayer){
+					position = "card4";
+				} else {
+					position = "card4p2";
+				}
+			}
 			if (gameScreen.secondPlayer) {
 				gameScreen.gc
 						.setHealth(
@@ -805,6 +1036,32 @@ public class CardsController {
 								false);
 			}
 		}
+		if (objectMap.get(position) != null) {
+			attacker = objectMap.get(position);
+		} else {
+			return;
+		}
+		float yDest = 0;
+		if (position.charAt(position.length() - 2) == 'p') {
+			yDest = GameActivity.CAMERA_HEIGHT - CardsController.heightCard;
+		} else {
+			yDest = 0;
+		}
+		gameScreen.cc.checkHighlight();
+		
+		final MoveModifier moveBack = new MoveModifier(1, 0, attacker.getX(),
+				yDest, attacker.getY());
+		
+		attacker.registerEntityModifier(new MoveModifier(0.25f, attacker.getX(), 0,
+				attacker.getY(), yDest){
+			@Override
+			protected void onModifierFinished(IEntity pItem) {
+				super.onModifierFinished(pItem);
+				if (attacker != null)
+					attacker.registerEntityModifier(moveBack);
+
+			}
+		});
 	}
 
 }
